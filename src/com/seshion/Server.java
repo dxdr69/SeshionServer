@@ -61,7 +61,7 @@ public class Server extends Thread
 				System.out.println("IO encountered while server running:\n" + ioe);
 				ioe.printStackTrace();
 			}
-			/*if(key.length>0)
+			if(key.length>0)
 			{
 				//try {
 				// string to contain the encrypted text
@@ -104,7 +104,7 @@ public class Server extends Thread
 				}
 				else
 					System.out.println("byte array has no length outside of while");
-			} */
+			}
 		}
 		catch(EOFException eofe)
 		{
