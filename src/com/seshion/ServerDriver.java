@@ -20,6 +20,8 @@ public class ServerDriver {
 	/* make our streams which send and receive the data */
 	public static void main(String[] args) throws IOException
 	{
+//		OpenSeshion  opS = new OpenSeshion();
+//        opS.start();
 		ServerSocket Server = new ServerSocket(8090);
 		System.out.println("waiting for connect");
 		while(true)
