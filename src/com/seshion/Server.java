@@ -171,53 +171,88 @@ public class Server extends Thread
 							byte[] decrytpedByteArray = aes.decrypt(encryptedByteArray);
 							String decryptedString = new String(decrytpedByteArray);
 							System.out.println("decrypted String:" + decryptedString);
-							Gson gson =new Gson();
+							
+							Gson gson = new Gson();
 							JsonParser parser = new JsonParser();
 							JsonArray array = parser.parse(decryptedString).getAsJsonArray();
-							String Action = gson.fromJson(array.get(0), String.class);
+							System.out.println("array created");
+							String action = gson.fromJson(array.get(0), String.class);
 							DBManager db = new DBManager();
+							System.out.println("deserialized action:" + action);
 							
-							ByteArrayOutputStream bos = new ByteArrayOutputStream();
-							List<UserGroup> groupList = new ArrayList<UserGroup>();
-							List<UserSession> sessionList = new ArrayList<UserSession>();
-							if(Action=="newuser")
+							
+							///ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//							List<UserGroup> groupList = new ArrayList<UserGroup>();
+//							List<UserSession> sessionList = new ArrayList<UserSession>();
+							
+							if(action.equals("createuser"))
 							{
+								System.out.println("reached create user");
 								UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-								String result =gson.toJson(String.valueOf(db.createNewUser(user)));
-								encryptedByteArray = aes.encrypt(result.getBytes());
-								dataNetOutputStream.write(encryptedByteArray); //createNewUser Function will return 0  if username is already taken
+								System.out.println("made user");
+								String result = gson.toJson(String.valueOf(db.createNewUser(user)));
+								System.out.println("made result string" + result);
+								byte[] encryptedResponse = aes.encrypt(result.getBytes());
+								System.out.println("encryption successful:" + new String(encryptedResponse));
+								dataNetOutputStream.write(encryptedResponse); //createNewUser Function will return 0  if username is already taken
 								//user registration calls the new user function in db class
+								System.out.println("send successful!");
 							}
-							else if(Action=="login")
+							else if(action.equals("login"))
 							{
+								System.out.println("reach if statement");
 								UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
 								String result = String.valueOf(db.userLogIn(user));
 								Collection collection = new ArrayList();
 								collection.add(result);
+								System.out.println("get result: " + result);
+								//collection.add(db.getfriendrequest())
 								collection.add(db.getFriends(user.getUserName()));
+								System.out.println("get friends list" );
+								collection.add(db.getOwnedGroups(user.getUserName()));
+								System.out.println("get owned groups" );
 								collection.add(db.getJoinedGroups(user.getUserName()));
+								System.out.println("get Joined groups" );
+								collection.add(db.getUserMessages(user.getUserName()));
+								System.out.println("get UserMessages" );
+								collection.add(db.getOwnedSessions(user.getUserName()));
+								System.out.println("get OwnedSessions" );
+								collection.add(db.getInvitedSessions(user.getUserName()));
+								System.out.println("get InvitedSessions" );
 								collection.add(db.getJoinedSessions(user.getUserName()));
+								System.out.println("get JoinedSessions" );
+								collection.add(db.getAllOpenSessions());
+								System.out.println("get JAllOpenSessions" );
 								String jString = gson.toJson(collection);
-								encryptedByteArray = aes.encrypt(jString.getBytes());
+								byte [] ByteArrayencrypted = aes.encrypt(jString.getBytes());
 								dataBufferedNetOutputStream.write(encryptedByteArray);
+								System.out.println("send string");
 							}
+							
+							else if(action.equals("logout"))
+							{
+								System.out.println("reached logout");
+								UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+								System.out.println("made user");
+								String result = gson.toJson(String.valueOf(db.userLogOut(user.getUserName())));
+								System.out.println("made result string" + result);
+								byte[] encryptedResponse = aes.encrypt(result.getBytes());
+								System.out.println("encryption successful:" + new String(encryptedResponse));
+								dataNetOutputStream.write(encryptedResponse); //createNewUser Function will return 0  if username is already taken
+								//user registration calls the new user function in db class
+								System.out.println("send successful!");
+							}
+//							else if(action=="setcoordinates")
+//							{
+//								double latitude = (Double)json.get("latitude");
+//								aUser.setLatitude(latitude);
+//								double longitude =(Double)json.get("longitude");
+//								aUser.setLongitude(longitude);
+//								String result = String.valueOf(db.setUserCoordinates(aUser.getUserName(), latitude, longitude));
+//								encryptedByteArray = aes.encrypt(result.getBytes());
+//								dataNetOutputStream.write(encryptedByteArray);
+//							}
 							/*
-							else if(Action=="logout")
-							{
-								String result = String.valueOf(db.userLogOut(aUser.getUserName()));
-								encryptedByteArray = aes.encrypt(result.getBytes());
-								dataNetOutputStream.write(encryptedByteArray);
-							}
-							else if(Action=="setcoordinates")
-							{
-								double latitude = (Double)json.get("latitude");
-								aUser.setLatitude(latitude);
-								double longitude =(Double)json.get("longitude");
-								aUser.setLongitude(longitude);
-								String result = String.valueOf(db.setUserCoordinates(aUser.getUserName(), latitude, longitude));
-								encryptedByteArray = aes.encrypt(result.getBytes());
-								dataNetOutputStream.write(encryptedByteArray);
-							}
 							else if(Action=="addfriend")
 							{
 								String friendname = (String) json.get("friendname");

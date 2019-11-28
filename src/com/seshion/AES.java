@@ -43,6 +43,7 @@ public class AES {
     /* this constructor takes the key as an argument (only for decryption) */
     public AES(byte[] symmetricKey) {
         this.aesKey = symmetricKey;
+        this.secretKey = new SecretKeySpec(aesKey, "AES");
     }
 
     public byte[] decrypt(byte[] toBeDecrypted) {

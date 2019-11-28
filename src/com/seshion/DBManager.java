@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 
 public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
     // Database login credentials
-    private final String url = "jdbc:postgresql://localhost:5432/seshion_db";
+    private final String url = "jdbc:postgresql://localhost:5432/seshiondb";
     private final String user = "postgres";
     private final String password = "Lgn@Psql";
 
@@ -36,6 +36,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
         random.nextBytes(salt);
+        int affectedRows = 0;
 
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
@@ -53,26 +54,31 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
             pstmt.setBytes(3, salt);
             pstmt.setBoolean(4, false);
             pstmt.setBoolean(5, true);
-
-            int affectedRows = pstmt.executeUpdate();
+            
+            affectedRows = pstmt.executeUpdate();
+            System.out.println("affectedRows:" + affectedRows);
             pstmt.close();
             conn.close();
+            
+            if (affectedRows == 1)
+            {
+            	creationSuccessful = 1;
+            }
 
-            if (affectedRows == 0)
-            {
-                // username is already taken
-                creationSuccessful = 0;
-            }
-            else
-            {
-                // user created successfully
-                creationSuccessful = 1;
-            }
-        
         } catch(NoSuchAlgorithmException e) {
             System.out.println(e.getMessage());
+            
         } catch(SQLException e) {
+        	
+        	// set equal to 0 if name already taken
+        	if(e.getMessage().startsWith("ERROR: duplicate key value violates unique constraint")) {
+        		creationSuccessful = 0;
+        	}else {
+        		creationSuccessful = -1;
+        	}
             System.out.println(e.getMessage());
+            
+            return creationSuccessful;
         }
         
         return creationSuccessful;
