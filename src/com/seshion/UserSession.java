@@ -29,11 +29,15 @@ public class UserSession {
     private List<String> invitedUsers;
     private List<String> showedUpUsers;
 
-    UserSession(String name, String owner, double latitudeTopLeft,
-    double longitudeTopLeft, double latitudeTopRight, double longitudeTopRight,
-    double latitudeBottomLeft, double longitudeBottomLeft, double latitudeBottomRight,
-    double longitudeBottomRight, LocalDate startDate, LocalTime startTime,
-    boolean isSessionPrivate)
+    private int img;
+
+    UserSession(String name, String owner,
+                double latitudeTopLeft, double longitudeTopLeft,
+                double latitudeTopRight, double longitudeTopRight,
+                double latitudeBottomLeft, double longitudeBottomLeft,
+                double latitudeBottomRight, double longitudeBottomRight,
+                LocalDate startDate, LocalTime startTime,
+                boolean isSessionPrivate )
     {
         sessionID = UUID.randomUUID();
         this.name = name;
@@ -55,6 +59,43 @@ public class UserSession {
         hasEnded = false;
         invitedUsers = new ArrayList<String>();
         showedUpUsers = new ArrayList<String>();
+    }
+
+    UserSession(String name, String owner,
+                double latitudeTopLeft, double longitudeTopLeft,
+                double latitudeBottomRight, double longitudeBottomRight,
+                LocalDate startDate, LocalTime startTime,
+                boolean isSessionPrivate )
+    {
+        sessionID = UUID.randomUUID();
+        this.name = name;
+        this.owner = owner;
+        description = "";
+        this.latitudeTopLeft = latitudeTopLeft;
+        this.longitudeTopLeft = longitudeTopLeft;
+        this.latitudeTopRight = latitudeBottomRight;
+        this.longitudeTopRight = longitudeTopLeft;
+        this.latitudeBottomLeft = latitudeTopLeft;
+        this.longitudeBottomLeft = longitudeBottomRight;
+        this.latitudeBottomRight = latitudeBottomRight;
+        this.longitudeBottomRight = longitudeBottomRight;
+        this.startDate = startDate;
+        endDate = null;
+        this.startTime = startTime;
+        endTime = null;
+        this.isSessionPrivate = isSessionPrivate;
+        hasEnded = false;
+        invitedUsers = new ArrayList<String>();
+        showedUpUsers = new ArrayList<String>();
+    }
+
+
+    public int getImg() {
+        return img;
+    }
+
+    public void setImg(int img) {
+        this.img = img;
     }
 
     public void setID(UUID id)
