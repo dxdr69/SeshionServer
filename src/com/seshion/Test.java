@@ -221,8 +221,8 @@ public class Test {
         }
 
         System.out.println(user1Name + " is creating a new session...");
-        UserSession groupProject = new UserSession("Seshion Project", user1Name, 
-        0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, LocalDate.now(), LocalTime.now(), false);
+        UserSession groupProject = new UserSession("Seshion Project", user1Name, null, 
+        1.00, 2.00, 3.00, 4.00, LocalDate.now(), null, LocalTime.now(), null, false, null);
 
         if (db.createNewSession(groupProject) == 1)
         {

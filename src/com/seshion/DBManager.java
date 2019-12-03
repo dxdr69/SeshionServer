@@ -70,12 +70,17 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
             
         } catch(SQLException e) {
         	
-        	// set equal to 0 if name already taken
-        	if(e.getMessage().startsWith("ERROR: duplicate key value violates unique constraint")) {
+        	// Username already taken
+            if (e.getMessage().startsWith("ERROR: duplicate key value violates unique constraint")) 
+            {
         		creationSuccessful = 0;
-        	}else {
+            } 
+            // Some other error
+            else 
+            {
         		creationSuccessful = -1;
-        	}
+            }
+            
             System.out.println(e.getMessage());
             
             return creationSuccessful;
@@ -435,10 +440,13 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         List<UserSession> ownedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE owner = ? ORDER BY startdate DESC, starttime DESC";
+            String SQL = "SELECT * FROM usersession "
+            + "WHERE owner = ? AND hasended = ? "
+            + "ORDER BY startdate DESC, starttime DESC";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
             pstmt.setString(1, username);
+            pstmt.setBoolean(2, false);
 
             ResultSet rs = pstmt.executeQuery();
 
@@ -458,6 +466,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 double longitudebottomright = rs.getDouble("longitudebottomright");
                 LocalDate startDate = LocalDate.parse(rs.getString("startdate"));
                 LocalTime startTime = LocalTime.parse(rs.getString("starttime"));
+                boolean isPrivate = rs.getBoolean("isprivate");
 
                 LocalDate endDate;
 
@@ -481,24 +490,37 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                     endTime = LocalTime.parse(rs.getString("endtime"));
                 }
 
-                boolean isPrivate = rs.getBoolean("isprivate");
-                boolean hasEnded = rs.getBoolean("hasended");
+                SQL = "SELECT theuser FROM usersession_inviteduser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
 
-                UserSession session = new UserSession(name, owner,
-                latitudetopleft, longitudetopleft, latitudetopright, longitudetopright,
-                latitudebottomleft, longitudebottomleft, latitudebottomright, longitudebottomright,
-                startDate, startTime, isPrivate);
+                ResultSet invRs = pstmt.executeQuery();
+                List<String> invitedUsers = new ArrayList<String>();
 
-                session.setID(sessionID);
-                session.setDescription(description);
-                session.setEndDate(endDate);
-                session.setEndTime(endTime);
-                
-                if (hasEnded)
+                while (invRs.next())
                 {
-                    session.endSession();
+                    invitedUsers.add(invRs.getString("theuser"));
                 }
 
+                SQL = "SELECT theuser FROM usersession_showedupuser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet showRs = pstmt.executeQuery();
+                List<String> showedUpUsers = new ArrayList<String>();
+
+                while (showRs.next())
+                {
+                    showedUpUsers.add(showRs.getString("theuser"));
+                }
+            
+                UserSession session = new UserSession(name, owner, description,
+                latitudetopleft, longitudetopleft, latitudetopright, longitudetopright,
+                latitudebottomleft, longitudebottomleft, latitudebottomright, longitudebottomright,
+                startDate, endDate, startTime, endTime, isPrivate, invitedUsers);
+                session.setID(sessionID);
+                session.setAllShowedUpUsers(showedUpUsers);
+                
                 ownedSessions.add(session);
             }
 
@@ -521,10 +543,13 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         try {
             String SQL = "SELECT * FROM usersession WHERE sid = "
             + "(SELECT sid FROM usersession_inviteduser WHERE theuser = ?) "
+            + "WHERE hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
             pstmt.setString(1, username);
+            pstmt.setBoolean(2, false);
+
             ResultSet rs = pstmt.executeQuery();
 
             while(rs.next())
@@ -543,6 +568,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 double longitudebottomright = rs.getDouble("longitudebottomright");
                 LocalDate startDate = LocalDate.parse(rs.getString("startdate"));
                 LocalTime startTime = LocalTime.parse(rs.getString("starttime"));
+                boolean isPrivate = rs.getBoolean("isprivate");
 
                 LocalDate endDate;
 
@@ -565,24 +591,37 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 {
                     endTime = LocalTime.parse(rs.getString("endtime"));
                 }
-                
-                boolean isPrivate = rs.getBoolean("isprivate");
-                boolean hasEnded = rs.getBoolean("hasended");
 
-                UserSession session = new UserSession(name, owner,
+                SQL = "SELECT theuser FROM usersession_inviteduser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet invRs = pstmt.executeQuery();
+                List<String> invitedUsers = new ArrayList<String>();
+
+                while (invRs.next())
+                {
+                    invitedUsers.add(invRs.getString("theuser"));
+                }
+
+                SQL = "SELECT theuser FROM usersession_showedupuser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet showRs = pstmt.executeQuery();
+                List<String> showedUpUsers = new ArrayList<String>();
+
+                while (showRs.next())
+                {
+                    showedUpUsers.add(showRs.getString("theuser"));
+                }
+            
+                UserSession session = new UserSession(name, owner, description,
                 latitudetopleft, longitudetopleft, latitudetopright, longitudetopright,
                 latitudebottomleft, longitudebottomleft, latitudebottomright, longitudebottomright,
-                startDate, startTime, isPrivate);
-
+                startDate, endDate, startTime, endTime, isPrivate, invitedUsers);
                 session.setID(sessionID);
-                session.setDescription(description);
-                session.setEndDate(endDate);
-                session.setEndTime(endTime);
-                
-                if (hasEnded)
-                {
-                    session.endSession();
-                }
+                session.setAllShowedUpUsers(showedUpUsers);
 
                 invitedSessions.add(session);
             }
@@ -604,10 +643,12 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         try {
             String SQL = "SELECT * FROM usersession WHERE sid = "
             + "(SELECT sid from usersession_showedupuser WHERE theuser = ?) "
+            + "WHERE hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
             pstmt.setString(1, username);
+            pstmt.setBoolean(2, false);
 
             ResultSet rs = pstmt.executeQuery();
 
@@ -627,6 +668,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 double longitudebottomright = rs.getDouble("longitudebottomright");
                 LocalDate startDate = LocalDate.parse(rs.getString("startdate"));
                 LocalTime startTime = LocalTime.parse(rs.getString("starttime"));
+                boolean isPrivate = rs.getBoolean("isprivate");
 
                 LocalDate endDate;
 
@@ -649,24 +691,37 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 {
                     endTime = LocalTime.parse(rs.getString("endtime"));
                 }
-                
-                boolean isPrivate = rs.getBoolean("isprivate");
-                boolean hasEnded = rs.getBoolean("hasended");
 
-                UserSession session = new UserSession(name, owner,
+                SQL = "SELECT theuser FROM usersession_inviteduser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet invRs = pstmt.executeQuery();
+                List<String> invitedUsers = new ArrayList<String>();
+
+                while (invRs.next())
+                {
+                    invitedUsers.add(invRs.getString("theuser"));
+                }
+
+                SQL = "SELECT theuser FROM usersession_showedupuser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet showRs = pstmt.executeQuery();
+                List<String> showedUpUsers = new ArrayList<String>();
+
+                while (showRs.next())
+                {
+                    showedUpUsers.add(showRs.getString("theuser"));
+                }
+            
+                UserSession session = new UserSession(name, owner, description,
                 latitudetopleft, longitudetopleft, latitudetopright, longitudetopright,
                 latitudebottomleft, longitudebottomleft, latitudebottomright, longitudebottomright,
-                startDate, startTime, isPrivate);
-
+                startDate, endDate, startTime, endTime, isPrivate, invitedUsers);
                 session.setID(sessionID);
-                session.setDescription(description);
-                session.setEndDate(endDate);
-                session.setEndTime(endTime);
-                
-                if (hasEnded)
-                {
-                    session.endSession();
-                }
+                session.setAllShowedUpUsers(showedUpUsers);
 
                 joinedSessions.add(session);
             }
@@ -1419,6 +1474,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 double longitudebottomright = rs.getDouble("longitudebottomright");
                 LocalDate startDate = LocalDate.parse(rs.getString("startdate"));
                 LocalTime startTime = LocalTime.parse(rs.getString("starttime"));
+                boolean isPrivate = rs.getBoolean("isprivate");
 
                 LocalDate endDate;
 
@@ -1441,19 +1497,38 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 {
                     endTime = LocalTime.parse(rs.getString("endtime"));
                 }
-                
-                boolean isPrivate = rs.getBoolean("isprivate");
 
-                UserSession session = new UserSession(name, owner,
+                SQL = "SELECT theuser FROM usersession_inviteduser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet invRs = pstmt.executeQuery();
+                List<String> invitedUsers = new ArrayList<String>();
+
+                while (invRs.next())
+                {
+                    invitedUsers.add(invRs.getString("theuser"));
+                }
+
+                SQL = "SELECT theuser FROM usersession_showedupuser WHERE sid = ? ORDER BY theuser";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, sessionID);
+
+                ResultSet showRs = pstmt.executeQuery();
+                List<String> showedUpUsers = new ArrayList<String>();
+
+                while (showRs.next())
+                {
+                    showedUpUsers.add(showRs.getString("theuser"));
+                }
+            
+                UserSession session = new UserSession(name, owner, description,
                 latitudetopleft, longitudetopleft, latitudetopright, longitudetopright,
                 latitudebottomleft, longitudebottomleft, latitudebottomright, longitudebottomright,
-                startDate, startTime, isPrivate);
-
+                startDate, endDate, startTime, endTime, isPrivate, invitedUsers);
                 session.setID(sessionID);
-                session.setDescription(description);
-                session.setEndDate(endDate);
-                session.setEndTime(endTime);
-
+                session.setAllShowedUpUsers(showedUpUsers);
+                
                 openSessions.add(session);
             }
 

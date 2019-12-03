@@ -28,21 +28,21 @@ public class UserSession {
     private boolean hasEnded;
     private List<String> invitedUsers;
     private List<String> showedUpUsers;
-
     private int img;
 
-    UserSession(String name, String owner,
+    UserSession(String name, String owner, String description,
                 double latitudeTopLeft, double longitudeTopLeft,
                 double latitudeTopRight, double longitudeTopRight,
                 double latitudeBottomLeft, double longitudeBottomLeft,
                 double latitudeBottomRight, double longitudeBottomRight,
-                LocalDate startDate, LocalTime startTime,
-                boolean isSessionPrivate )
+                LocalDate startDate, LocalDate endDate, LocalTime startTime,
+                LocalTime endTime, boolean isSessionPrivate, 
+                List<String> invitedUsers)
     {
         sessionID = UUID.randomUUID();
         this.name = name;
         this.owner = owner;
-        description = "";
+        this.description = description;
         this.latitudeTopLeft = latitudeTopLeft;
         this.longitudeTopLeft = longitudeTopLeft;
         this.latitudeTopRight = latitudeTopRight;
@@ -52,25 +52,26 @@ public class UserSession {
         this.latitudeBottomRight = latitudeBottomRight;
         this.longitudeBottomRight = longitudeBottomRight;
         this.startDate = startDate;
-        endDate = null;
+        this.endDate = endDate;
         this.startTime = startTime;
-        endTime = null;
+        this.endTime = endTime;
         this.isSessionPrivate = isSessionPrivate;
         hasEnded = false;
-        invitedUsers = new ArrayList<String>();
+        this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
     }
 
-    UserSession(String name, String owner,
+    UserSession(String name, String owner, String description,
                 double latitudeTopLeft, double longitudeTopLeft,
                 double latitudeBottomRight, double longitudeBottomRight,
-                LocalDate startDate, LocalTime startTime,
-                boolean isSessionPrivate )
+                LocalDate startDate, LocalDate endDate, 
+                LocalTime startTime, LocalTime endTime,
+                boolean isSessionPrivate, List<String> invitedUsers)
     {
         sessionID = UUID.randomUUID();
         this.name = name;
         this.owner = owner;
-        description = "";
+        this.description = description;
         this.latitudeTopLeft = latitudeTopLeft;
         this.longitudeTopLeft = longitudeTopLeft;
         this.latitudeTopRight = latitudeBottomRight;
@@ -80,15 +81,14 @@ public class UserSession {
         this.latitudeBottomRight = latitudeBottomRight;
         this.longitudeBottomRight = longitudeBottomRight;
         this.startDate = startDate;
-        endDate = null;
+        this.endDate = endDate;
         this.startTime = startTime;
-        endTime = null;
+        this.endTime = endTime;
         this.isSessionPrivate = isSessionPrivate;
         hasEnded = false;
-        invitedUsers = new ArrayList<String>();
+        this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
     }
-
 
     public int getImg() {
         return img;
@@ -252,9 +252,16 @@ public class UserSession {
 
     public LocalTime getEndTime()
     {
-        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-        String endTimeText = timeFormat.format(endTime);
-        return LocalTime.parse(endTimeText, timeFormat);
+        if (endTime != null)
+        {
+            DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+            String endTimeText = timeFormat.format(endTime);
+            return LocalTime.parse(endTimeText, timeFormat);
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public void changeSessionVisibility()
@@ -289,6 +296,11 @@ public class UserSession {
         invitedUsers.add(username);
     }
 
+    public void setAllInvitedUsers(List<String> invited)
+    {
+        invitedUsers = invited;
+    }
+
     public List<String> getInvitedUsers()
     {
         return invitedUsers;
@@ -297,6 +309,11 @@ public class UserSession {
     public void joinUser(String username)
     {
         showedUpUsers.add(username);
+    }
+
+    public void setAllShowedUpUsers(List<String> showed)
+    {
+        showedUpUsers = showed;
     }
 
     public List<String> getShowedUpUsers()
