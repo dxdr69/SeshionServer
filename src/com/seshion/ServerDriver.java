@@ -85,7 +85,7 @@ public class ServerDriver {
 		
 		/* Testing getFriends function*/
 		String user1 = twizzy.getUserName();
-		List<UserAccount> friends = db.getFriends(user1);
+		/*Testing pull request*/List<UserAccount> friends = db.getFriends(user1);
 
 		if (!friends.isEmpty())
 		{
