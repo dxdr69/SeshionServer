@@ -30,11 +30,9 @@ public class ServerDriver {
 		DBManager db = new DBManager();
 
 		// /* just making some seshions */
-		UserAccount twizzy = new UserAccount("Twizzy", "doesn't matter");
-		
+		UserAccount twizzy = new UserAccount("Twizzy", "doesn't matter");	
 		ArrayList<UserSession> seshions = new ArrayList<UserSession>();
-		
-		System.out.println("attempting to create usersession object");
+	
         UserSession sesh = new UserSession("Scazi", "Twizzy", null,
                 41.063378, -73.546277,
                 -73.546277, 41.062885,
@@ -78,14 +76,10 @@ public class ServerDriver {
         	int result = db.createNewSession(seshions.get(i));
         	System.out.println("Result of create session " + (i+1) + ":" + result);
 		}
-		// Random
-		// Comment
-		// Hello
-		// World
-		// Goodbye
+
 		/* Testing getFriends function*/
 		String user1 = twizzy.getUserName();
-		List<UserAccount> friends = db.getFriends(user1); // COMMENT FOR ADRIAN (MERGE TEST) 
+		List<UserAccount> friends = db.getFriends(user1);
 
 		if (!friends.isEmpty())
 		{

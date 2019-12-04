@@ -404,6 +404,46 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
 
         return removeFriendSuccessful;
     }
+    
+    public List<UserAccount> getPendingFriendRequests(String username)
+    {
+        List<UserAccount> listOfRequests = new ArrayList<UserAccount>();
+
+        try {
+            String SQL = "SELECT username, isonline, description "
+            + "FROM useraccount "
+            + "JOIN friendswith "
+            + "ON username = friend "
+            + "WHERE theuser = ? AND isfriendrequestaccepted = ? "
+            + "ORDER BY username";
+            Connection conn = connectToDB();
+            PreparedStatement pstmt = conn.prepareStatement(SQL);
+            pstmt.setString(1, username);
+            pstmt.setBoolean(2, false);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next())
+            {
+                String requestUsername = rs.getString("username");
+                boolean isOnline = rs.getBoolean("isonline");
+                String description = rs.getString("description");
+                
+                UserAccount requester = new UserAccount(requestUsername, isOnline);
+                requester.setDescription(description);
+
+                listOfRequests.add(requester);
+            }
+
+            pstmt.close();
+            conn.close();
+
+        } catch(SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return listOfRequests;
+    }
 
     public List<UserAccount> getFriends(String username)
     {

@@ -53,6 +53,12 @@ public class UserAccount {
         messages = null;
     }
 
+    UserAccount(String username, boolean isOnline)
+    {
+        this.username = username;
+        this.isOnline = isOnline;
+    }
+
     public void setUserName(String username)
     {
         this.username = username;

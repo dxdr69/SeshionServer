@@ -12,6 +12,7 @@ public interface UserAccountDao {
     public int sendFriendRequest(String theUser, String friendUsername);
     public int manageFriendRequest(String theUser, String senderUsername, boolean requestAccepted);
     public int removeFriend(String theUser, String friendUsername);
+    public List<UserAccount> getPendingFriendRequests(String username);
     public List<UserAccount> getFriends(String username);
     public List<UserSession> getOwnedSessions(String username);
     public List<UserSession> getInvitedSessions(String username);
