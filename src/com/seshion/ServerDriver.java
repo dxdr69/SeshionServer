@@ -34,6 +34,7 @@ public class ServerDriver {
 		
 		ArrayList<UserSession> seshions = new ArrayList<UserSession>();
 		
+		System.out.println("attempting to create usersession object");
         UserSession sesh = new UserSession("Scazi", "Twizzy", null,
                 41.063378, -73.546277,
                 -73.546277, 41.062885,
@@ -42,6 +43,7 @@ public class ServerDriver {
                 LocalDate.now(), null, LocalTime.now(), null,
                 false, null);
         seshions.add(sesh);
+        System.out.println("createdusersession object");
 
         UserSession sesh2 = new UserSession("Calf Pasture Beach Skatepark", "Twizzy", null,
                 41.084396, -73.396121,
@@ -76,6 +78,10 @@ public class ServerDriver {
         	int result = db.createNewSession(seshions.get(i));
         	System.out.println("Result of create session " + (i+1) + ":" + result);
 		}
+        
+        /* some random ass comment here to mess with git */
+        /* more changes that we can use to create a conflict */
+        /* will this get seen */
 		
 		/* Testing getFriends function*/
 		String user1 = twizzy.getUserName();
