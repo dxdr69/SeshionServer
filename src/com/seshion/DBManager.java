@@ -405,14 +405,17 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         return removeFriendSuccessful;
     }
 
-    public List<String> getFriends(String username)
+    public List<UserAccount> getFriends(String username)
     {
-        List<String> listOfFriends = new ArrayList<String>();
+        List<UserAccount> listOfFriends = new ArrayList<UserAccount>();
 
         try {
-            String SQL = "SELECT friend FROM friendswith "
+            String SQL = "SELECT username, latitude, longitude, isonline, isvisibilityprivate, description "
+            + "FROM useraccount "
+            + "JOIN friendswith "
+            + "ON username = friend "
             + "WHERE theuser = ? AND isfriendrequestaccepted = ? "
-            + "ORDER BY friend";
+            + "ORDER BY username";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
             pstmt.setString(1, username);
@@ -422,7 +425,19 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
 
             while (rs.next())
             {
-                listOfFriends.add(rs.getString("friend"));
+                String friendUsername = rs.getString("username");
+                double currentLatitude = rs.getDouble("latitude");
+                double currentLongitude = rs.getDouble("longitude");
+                boolean isOnline = rs.getBoolean("isonline");
+                boolean isVisibilityPrivate = rs.getBoolean("isvisibilityprivate");
+                String description = rs.getString("description");
+                List<UserSession> joinedSessions = getJoinedSessions(username);
+                
+                UserAccount friend = new UserAccount(friendUsername, currentLatitude,
+                currentLongitude, isOnline, isVisibilityPrivate, joinedSessions);
+                friend.setDescription(description);
+
+                listOfFriends.add(friend);
             }
 
             pstmt.close();

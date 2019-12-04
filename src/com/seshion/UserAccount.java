@@ -8,6 +8,7 @@ public class UserAccount {
     private String password;
     private double currentLatitude;
     private double currentLongitude;
+    private String description;
     private boolean isOnline;
     private boolean isVisibilityPrivate;
     private List<String> friends;
@@ -31,6 +32,25 @@ public class UserAccount {
         ownedGroups = new ArrayList<UserGroup>();
         joinedGroups = new ArrayList<UserGroup>();
         messages = new ArrayList<Message>();
+    }
+
+    UserAccount(String username, double currentLatitude, double currentLongitude,
+    boolean isOnline, boolean isVisibilityPrivate, 
+    List<UserSession> joinedSessions)
+    {
+        this.username = username;
+        password = null;
+        this.currentLatitude = currentLatitude;
+        this.currentLongitude = currentLongitude;
+        this.isOnline = isOnline;
+        this.isVisibilityPrivate = isVisibilityPrivate;
+        friends = null;
+        ownedSessions = null;
+        invitedSessions = null;
+        this.joinedSessions = joinedSessions;
+        ownedGroups = null;
+        joinedGroups = null;
+        messages = null;
     }
 
     public void setUserName(String username)
@@ -71,6 +91,16 @@ public class UserAccount {
     public double getLongitude()
     {
         return currentLongitude;
+    }
+
+    public void setDescription(String desc)
+    {
+        description = desc;
+    }
+
+    public String getDescription()
+    {
+        return description;
     }
 
     public boolean isLoggedIn()

@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.ArrayList;
 
 public class ServerDriver {
@@ -26,9 +27,10 @@ public class ServerDriver {
 //		OpenSeshion  opS = new OpenSeshion();
 //        opS.start();
 		
-		/* just making some seshions */
-		UserAccount twizzy = new UserAccount("Twizzy", "doesn't matter");
 		DBManager db = new DBManager();
+
+		// /* just making some seshions */
+		UserAccount twizzy = new UserAccount("Twizzy", "doesn't matter");
 		
 		ArrayList<UserSession> seshions = new ArrayList<UserSession>();
 		
@@ -73,7 +75,20 @@ public class ServerDriver {
         for (int i=0; i<seshions.size(); i++) {
         	int result = db.createNewSession(seshions.get(i));
         	System.out.println("Result of create session " + (i+1) + ":" + result);
-        }
+		}
+		
+		/* Testing getFriends function*/
+		String user1 = twizzy.getUserName();
+		List<UserAccount> friends = db.getFriends(user1);
+
+		if (!friends.isEmpty())
+		{
+			System.out.println("1st friend of Twizzy: " + friends.get(0).getUserName());
+			System.out.println("Current location: " + friends.get(0).getLatitude() + ", " 
+			+ friends.get(0).getLongitude());
+			System.out.println("Online: " + friends.get(0).isLoggedIn());
+			System.out.println("Private profile: " + friends.get(0).isProfilePrivate());
+		}
         	
 		/*(ServerSocket Server = new ServerSocket(8090);
 		System.out.println("waiting for connect");
