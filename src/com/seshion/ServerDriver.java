@@ -76,7 +76,11 @@ public class ServerDriver {
         	int result = db.createNewSession(seshions.get(i));
         	System.out.println("Result of create session " + (i+1) + ":" + result);
 		}
-		
+		// Random
+		// Comment
+		// Hello
+		// World
+		// Goodbye
 		/* Testing getFriends function*/
 		String user1 = twizzy.getUserName();
 		List<UserAccount> friends = db.getFriends(user1); // COMMENT FOR ADRIAN (MERGE TEST) 
