@@ -79,7 +79,7 @@ public class ServerDriver {
 		
 		/* Testing getFriends function*/
 		String user1 = twizzy.getUserName();
-		List<UserAccount> friends = db.getFriends(user1);
+		List<UserAccount> friends = db.getFriends(user1); // COMMENT FOR ADRIAN (MERGE TEST) 
 
 		if (!friends.isEmpty())
 		{
