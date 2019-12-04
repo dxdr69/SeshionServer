@@ -1236,29 +1236,32 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         int createSessionSuccessful = -1;
 
         try {
-            String SQL = "INSERT INTO usersession (sid, name, owner, latitudetopleft, "
-            + "longitudetopleft, latitudetopright, longitudetopright, latitudebottomleft, "
-            + "longitudebottomleft, latitudebottomright, longitudebottomright, "
-            + "startdate, starttime, isprivate, hasended) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String SQL = "INSERT INTO usersession (sid, name, owner, description, " 
+            + "latitudetopleft, longitudetopleft, latitudetopright, longitudetopright, "
+            + "latitudebottomleft, longitudebottomleft, latitudebottomright, longitudebottomright, "
+            + "startdate, enddate, starttime, endtime, isprivate, hasended) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
 
             pstmt.setObject(1, sesh.getID());
             pstmt.setString(2, sesh.getName());
             pstmt.setString(3, sesh.getOwnerUsername());
-            pstmt.setDouble(4, sesh.getLatitudeTopLeft());
-            pstmt.setDouble(5, sesh.getLongitudeTopLeft());
-            pstmt.setDouble(6, sesh.getLatitudeTopRight());
-            pstmt.setDouble(7, sesh.getLongitudeTopRight());
-            pstmt.setDouble(8, sesh.getLatitudeBottomLeft());
-            pstmt.setDouble(9, sesh.getLongitudeBottomLeft());
-            pstmt.setDouble(10, sesh.getLatitudeBottomRight());
-            pstmt.setDouble(11, sesh.getLongitudeBottomRight());
-            pstmt.setObject(12, sesh.getStartDate(), Types.DATE);
-            pstmt.setObject(13, sesh.getStartTime(), Types.TIME);
-            pstmt.setBoolean(14, sesh.isSessionPrivate());
-            pstmt.setBoolean(15, sesh.isSessionOpen());
+            pstmt.setString(4, sesh.getDescription());
+            pstmt.setDouble(5, sesh.getLatitudeTopLeft());
+            pstmt.setDouble(6, sesh.getLongitudeTopLeft());
+            pstmt.setDouble(7, sesh.getLatitudeTopRight());
+            pstmt.setDouble(8, sesh.getLongitudeTopRight());
+            pstmt.setDouble(9, sesh.getLatitudeBottomLeft());
+            pstmt.setDouble(10, sesh.getLongitudeBottomLeft());
+            pstmt.setDouble(11, sesh.getLatitudeBottomRight());
+            pstmt.setDouble(12, sesh.getLongitudeBottomRight());
+            pstmt.setObject(13, sesh.getStartDate(), Types.DATE);
+            pstmt.setObject(14, sesh.getEndDate(), Types.DATE);
+            pstmt.setObject(15, sesh.getStartTime(), Types.TIME);
+            pstmt.setObject(16, sesh.getEndTime(), Types.TIME);
+            pstmt.setBoolean(17, sesh.isSessionPrivate());
+            pstmt.setBoolean(18, sesh.isSessionOpen());
 
             int currentlyAffectedRows = pstmt.executeUpdate();
 

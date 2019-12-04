@@ -27,55 +27,62 @@ public class ServerDriver {
 //        opS.start();
 		
 		/* just making some seshions */
-//		UserAccount twizzy = new UserAccount("Twizzy", "doesn't matter");
-//		DBManager db = new DBManager();
-//		
-//		ArrayList<UserSession> seshions = new ArrayList<UserSession>();
-//		
-//        UserSession sesh = new UserSession("Scazi", "Twizzy",
-//                41.063378, -73.546277,
-//                -73.546277, 41.062885,
-//                41.063378, -73.545720,
-//                41.062885, -73.545720,
-//                LocalDate.now(), LocalTime.NOON,
-//                false);
-//        seshions.add(sesh);
-//
-//        UserSession sesh2 = new UserSession("Calf Pasture Beach Skatepark", "Twizzy",
-//                41.084396, -73.396121,
-//                41.084020, -73.395482,
-//                LocalDate.now(), LocalTime.NOON,
-//                false);
-//        seshions.add(sesh);
-//
-//        UserSession sesh3 = new UserSession("Danbury Skatepark", "Twizzy",
-//                41.396016, -73.450117,
-//                41.395187, -73.449259,
-//                LocalDate.now(), LocalTime.NOON,
-//                false);
-//        seshions.add(sesh);
-//        
-//        UserSession sesh4 = new UserSession("Newtown Skatepark", "Twizzy",
-//                41.397028,  -73.301002,
-//                41.395187, -73.449259,
-//                LocalDate.now(), LocalTime.NOON,
-//                false);
-//        seshions.add(sesh);
-//        
-//        for(int i =0; i< seshions.size(); i++) {
-//        	int result = db.createNewSession(seshions.get(i));
-//        	System.out.println("Result of create session" + i + ":" + result);
-//        }
+		UserAccount twizzy = new UserAccount("Twizzy", "doesn't matter");
+		DBManager db = new DBManager();
+		
+		ArrayList<UserSession> seshions = new ArrayList<UserSession>();
+		
+        UserSession sesh = new UserSession("Scazi", "Twizzy", null,
+                41.063378, -73.546277,
+                -73.546277, 41.062885,
+                41.063378, -73.545720,
+                41.062885, -73.545720,
+                LocalDate.now(), null, LocalTime.now(), null,
+                false, null);
+        seshions.add(sesh);
+
+        UserSession sesh2 = new UserSession("Calf Pasture Beach Skatepark", "Twizzy", null,
+                41.084396, -73.396121,
+                41.084020, -73.395482,
+                LocalDate.now(), null, LocalTime.now(), null,
+                false, null);
+        seshions.add(sesh2);
+
+        UserSession sesh3 = new UserSession("Danbury Skatepark", "Twizzy", null,
+                41.396016, -73.450117,
+                41.395187, -73.449259,
+                LocalDate.now(), null, LocalTime.now(), null,
+                false, null);
+        seshions.add(sesh3);
+        
+        UserSession sesh4 = new UserSession("Newtown Skatepark", "Twizzy", null,
+                41.397028,  -73.301002,
+                41.395187, -73.449259,
+                LocalDate.now(), null, LocalTime.now(), null,
+                false, null);
+		seshions.add(sesh4);
+		
+		for (int i=0; i<seshions.size(); i++)
+		{
+			System.out.println("Seshion: " + seshions.get(i).getName());
+			System.out.println(seshions.get(i).getStartDate());
+			System.out.println(seshions.get(i).getStartTime());
+			System.out.println();
+		}
+        
+        for (int i=0; i<seshions.size(); i++) {
+        	int result = db.createNewSession(seshions.get(i));
+        	System.out.println("Result of create session " + (i+1) + ":" + result);
+        }
         	
-        
-        
-		ServerSocket Server = new ServerSocket(8090);
+		/*(ServerSocket Server = new ServerSocket(8090);
 		System.out.println("waiting for connect");
 		while(true)
 		{
 			Socket socket = Server.accept();
 			new Server(socket).start();
-		}
+		}*/
+
 	}
 
 }
