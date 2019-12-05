@@ -596,7 +596,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         List<UserSession> invitedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE sid = "
+            String SQL = "SELECT * FROM usersession WHERE sid in "
             + "(SELECT sid FROM usersession_inviteduser WHERE theuser = ?) "
             + "WHERE hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
@@ -696,7 +696,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         List<UserSession> joinedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE sid = "
+            String SQL = "SELECT * FROM usersession WHERE sid in "
             + "(SELECT sid from usersession_showedupuser WHERE theuser = ?) "
             + "WHERE hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
@@ -832,7 +832,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         try {
             String SQL = "SELECT gid, name, owner "
             + "FROM usergroup " 
-            + "WHERE gid = (SELECT gid FROM usergroup_groupmember WHERE usermember = ?) "
+            + "WHERE gid in (SELECT gid FROM usergroup_groupmember WHERE usermember = ?) "
             + "AND owner <> ? "
             + "ORDER BY name";
             Connection conn = connectToDB();
