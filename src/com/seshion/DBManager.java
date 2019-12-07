@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import java.nio.charset.StandardCharsets;
 
-public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
+public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, MessageDao {
     // Database login credentials
     private final String url = "jdbc:postgresql://localhost:5432/seshiondb";
     private final String user = "postgres";
@@ -471,10 +471,12 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 boolean isOnline = rs.getBoolean("isonline");
                 boolean isVisibilityPrivate = rs.getBoolean("isvisibilityprivate");
                 String description = rs.getString("description");
-                List<UserSession> joinedSessions = getJoinedSessions(username);
+                List<UserSession> joinedSessions = getJoinedSessions(friendUsername);
+                List<UserSession> ownedSessions = getOwnedSessions(friendUsername);
                 
                 UserAccount friend = new UserAccount(friendUsername, currentLatitude,
-                currentLongitude, isOnline, isVisibilityPrivate, joinedSessions);
+                currentLongitude, isOnline, isVisibilityPrivate, joinedSessions,
+                ownedSessions);
                 friend.setDescription(description);
 
                 listOfFriends.add(friend);
@@ -596,7 +598,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         List<UserSession> invitedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE sid in "
+            String SQL = "SELECT * FROM usersession WHERE sid IN "
             + "(SELECT sid FROM usersession_inviteduser WHERE theuser = ?) "
             + "WHERE hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
@@ -696,7 +698,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         List<UserSession> joinedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE sid in "
+            String SQL = "SELECT * FROM usersession WHERE sid IN "
             + "(SELECT sid from usersession_showedupuser WHERE theuser = ?) "
             + "WHERE hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
@@ -809,7 +811,19 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 String name = rs.getString("name");
                 String owner = rs.getString("owner");
 
-                UserGroup group = new UserGroup(name, owner);
+                SQL = "SELECT usermember FROM usergroup_groupmember WHERE gid = ?";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, groupID);
+
+                ResultSet memberRs = pstmt.executeQuery();
+                List<String> groupMembers = new ArrayList<String>();
+
+                while (memberRs.next())
+                {
+                    groupMembers.add(memberRs.getString("usermember"));
+                }
+
+                UserGroup group = new UserGroup(name, owner, groupMembers);
                 group.setID(groupID);
 
                 ownedGroups.add(group);
@@ -832,7 +846,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
         try {
             String SQL = "SELECT gid, name, owner "
             + "FROM usergroup " 
-            + "WHERE gid in (SELECT gid FROM usergroup_groupmember WHERE usermember = ?) "
+            + "WHERE gid IN (SELECT gid FROM usergroup_groupmember WHERE usermember = ?) "
             + "AND owner <> ? "
             + "ORDER BY name";
             Connection conn = connectToDB();
@@ -848,7 +862,19 @@ public class DBManager implements UserAccountDao, UserGroupDao, MessageDao {
                 String name = rs.getString("name");
                 String owner = rs.getString("owner");
 
-                UserGroup group = new UserGroup(name, owner);
+                SQL = "SELECT usermember FROM usergroup_groupmember WHERE gid = ?";
+                pstmt = conn.prepareStatement(SQL);
+                pstmt.setObject(1, groupID);
+
+                ResultSet memberRs = pstmt.executeQuery();
+                List<String> groupMembers = new ArrayList<String>();
+
+                while (memberRs.next())
+                {
+                    groupMembers.add(memberRs.getString("usermember"));
+                }
+
+                UserGroup group = new UserGroup(name, owner, groupMembers);
                 group.setID(groupID);
 
                 joinedGroups.add(group);

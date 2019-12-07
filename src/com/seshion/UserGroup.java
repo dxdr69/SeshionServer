@@ -21,6 +21,15 @@ public class UserGroup {
         messages = new ArrayList<Message>();
     }
 
+    UserGroup(String groupName, String owner, List<String> groupMembers)
+    {
+        groupID = null;
+        this.groupName = groupName;
+        this.owner = owner;
+        this.groupMembers = groupMembers;
+        this.messages = null;
+    }
+
     public void setID(UUID id)
     {
         groupID = id;
@@ -54,6 +63,11 @@ public class UserGroup {
     public void removeGroupMember(String username)
     {
         groupMembers.remove(username);
+    }
+
+    public void setAllGroupMembers(List<String> members)
+    {
+        groupMembers = members;
     }
 
     public List<String> getAllGroupMembers()

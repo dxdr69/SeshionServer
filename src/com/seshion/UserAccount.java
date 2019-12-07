@@ -35,8 +35,8 @@ public class UserAccount {
     }
 
     UserAccount(String username, double currentLatitude, double currentLongitude,
-    boolean isOnline, boolean isVisibilityPrivate, 
-    List<UserSession> joinedSessions)
+    boolean isOnline, boolean isVisibilityPrivate, List<UserSession> joinedSessions, 
+    List<UserSession> ownedSessions)
     {
         this.username = username;
         password = null;
@@ -47,6 +47,7 @@ public class UserAccount {
         friends = null;
         ownedSessions = null;
         invitedSessions = null;
+        this.ownedSessions = ownedSessions;
         this.joinedSessions = joinedSessions;
         ownedGroups = null;
         joinedGroups = null;
