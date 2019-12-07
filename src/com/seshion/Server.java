@@ -240,10 +240,10 @@ public class Server extends Thread {
 								System.out.println("inside of for loop");
 								UserSession uSh = userSessions.get(i);
 								//check whether or not the user latitude is in the range
-								if (user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeTopRight()) {
+								if (user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeBottomRight()) {
 									System.out.println("latitude is in the range");
 									//check whether or not the user longitude is in the range
-									if (user.getLongitude() <= uSh.getLongitudeTopRight() && user.getLongitude() >= uSh.getLongitudeBottomRight()) {
+									if (user.getLongitude() <= uSh.getLongitudeTopLeft() && user.getLongitude() >= uSh.getLongitudeTopRight()) {
 										System.out.println("Longitude is in the range");
 										withinRange = true;
 										checkedIn = uSh; //get the session where the user is.
@@ -256,7 +256,7 @@ public class Server extends Thread {
 							Collection collection = new ArrayList();
 							collection.add(result);
 							System.out.println("get result: " + result);
-							if (withinRange) {
+							if (withinRange) { //if the user is in the range add the checked in session into array
 								collection.add(checkedIn);
 								System.out.println("get the checked in seshion " + checkedIn.getName());
 							}
