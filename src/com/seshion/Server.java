@@ -188,7 +188,7 @@ public class Server extends Thread {
 							Collection collection = new ArrayList(); // a collection with vary types of info
 							collection.add(result);
 							System.out.println("get result: " + result);
-							// collection.add(db.getfriendrequest())
+
 							collection.add(db.getFriends(user.getUserName()));
 							System.out.println("get friends list");
 							collection.add(db.getOwnedGroups(user.getUserName()));
@@ -205,6 +205,8 @@ public class Server extends Thread {
 							System.out.println("get JoinedSessions");
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");
+							collection.add(db.getPendingFriendRequests(user.getUserName()));
+							System.out.println("get PendingFriendRequests");
 							String jString = gson.toJson(collection); //convert the collection to Json format String
 
 							/* send response to client */
@@ -291,15 +293,26 @@ public class Server extends Thread {
 							dataNetOutputStream.write(encryptedResponse);
 							System.out.println("send string");
 						}
-					/*else if(action=="friendRequest")
-					{
-					//need a function which returns all friends that isfriendrequestaccepted = false
-					//then in the client user can decide whether to accept or not. Once user accept call db.manageFriendRequest
-						String result = String.valueOf(db.manageFriendRequest(aUser));
-						encryptedByteArray = Cryptor.encryption(key, result);
-						outStream.write(encryptedByteArray);
-					}
-					*/
+						else if(action.equals("managefriendrequest"))
+						{
+							System.out.println("reach managefriendrequest if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							System.out.println("received user " + user.getUserName());
+							String senderName = gson.fromJson(array.get(2), String.class);
+							System.out.println("Sender name " + senderName);
+							boolean requestAceepted = gson.fromJson(array.get(3),boolean.class);
+							System.out.println("accepted " + requestAceepted);
+							String result = gson.toJson(String.valueOf(db.manageFriendRequest(user.getUserName(),
+									senderName,requestAceepted)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						}
+
 						else if (action.equals("getfriend")) {
 							System.out.println("reach getfriend if statement");
 							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
@@ -465,7 +478,7 @@ public class Server extends Thread {
 							dataNetOutputStream.writeInt(responseSize);
 							dataNetOutputStream.write(encryptedResponse);
 							System.out.println("send string");
-						} else if (action.equals("createnewsession")) {
+						} else if (action.equals("createseshion")) {
 							System.out.println("reach createnewsession if statement");
 							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
 							String result = gson.toJson(String.valueOf(db.createNewSession(seshion)));
