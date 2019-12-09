@@ -208,10 +208,11 @@ public class Server extends Thread {
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");
 							String jString = gson.toJson(collection); //convert the collection to Json format String
-
+							System.out.println("collection.toString():" + collection);
 							/* send response to client */
 							byte[] encryptedResponseArray = aes.encrypt(jString.getBytes()); //encrypting the string
 							dataNetOutputStream.writeInt(encryptedResponseArray.length);
+							System.out.println("encryptedResponseArray.length:" + encryptedResponseArray.length);
 							dataNetOutputStream.write(encryptedResponseArray);
 							System.out.println("send string");
 						} else if (action.equals("logout")) {
