@@ -11,7 +11,7 @@ public class UserAccount {
     private String description;
     private boolean isOnline;
     private boolean isVisibilityPrivate;
-    private List<String> friends;
+    private List<UserAccount> friends;
     private List<UserSession> ownedSessions;
     private List<UserSession> invitedSessions;
     private List<UserSession> joinedSessions;
@@ -25,7 +25,7 @@ public class UserAccount {
         this.password = password;
         isOnline = true;
         isVisibilityPrivate = false;
-        friends = new ArrayList<String>();
+        friends = new ArrayList<UserAccount>();
         ownedSessions = new ArrayList<UserSession>();
         invitedSessions = new ArrayList<UserSession>();
         joinedSessions = new ArrayList<UserSession>();
@@ -158,20 +158,26 @@ public class UserAccount {
         }
     }
 
-    public void addFriend(String friendUsername)
+    public void addFriend(UserAccount friendUsername)
     {
         friends.add(friendUsername);
     }
 
-    public void removeFriend(String friendUsername)
+    public void removeFriend(UserAccount friendUsername)
     {
         friends.remove(friendUsername);
     }
 
-    public List<String> getAllFriends()
+    public List<UserAccount> getAllFriends()
     {
         return friends;
     }
+    
+    public void setAllFriends(List<UserAccount> friends)
+    {
+        this.friends = friends;
+    }
+
 
     public void addOwnedSession(UserSession sesh)
     {
