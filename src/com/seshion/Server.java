@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.*;
+
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -15,6 +16,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
 import java.io.*;
 import java.util.UUID;
 import java.util.*;
@@ -119,301 +121,415 @@ public class Server extends Thread {
 
 				/* array to contain the encrypted json */
 				byte[] encryptedByteArray = null;
+				while (true) {
+					try {
 
-				try {
+						/* read the length of the array from the client */
+						System.out.println("attempting to read length of data from client using non buffered input stream");
+						int length = dataNetInputStream.readInt();
+						System.out.println("length of json sent from client:" + length);
+						encryptedByteArray = new byte[length];
 
-					/* read the length of the array from the client */
-					System.out.println("attempting to read length of data from client using non buffered input stream");
-					int length = dataNetInputStream.readInt();
-					System.out.println("length of json sent from client:" + length);
-					encryptedByteArray = new byte[length];
+						/* obtain the json data from the client */
+						dataNetInputStream.read(encryptedByteArray, 0, length);
+						System.out.println("length of json encrypted array:" + encryptedByteArray.length);
 
-					/* obtain the json data from the client */
-					dataNetInputStream.read(encryptedByteArray, 0, length);
-					System.out.println("length of json encrypted array:" + encryptedByteArray.length);
+					} catch (EOFException eofe) {
+						System.out.println("End Of File Exception, no more data sent in this stream\n" + eofe);
+						// eofe.printStackTrace();
+						// break;
 
-				} catch (EOFException eofe) {
-					System.out.println("End Of File Exception, no more data sent in this stream\n" + eofe);
-					// eofe.printStackTrace();
-					// break;
+					} catch (IOException ioe) {
+						System.out.println("IO encountered while server running:\n" + ioe);
+						ioe.printStackTrace();
+					}
 
-				} catch (IOException ioe) {
-					System.out.println("IO encountered while server running:\n" + ioe);
-					ioe.printStackTrace();
+					/* decrypt the action */
+					if (encryptedByteArray.length > 0) {
+
+						// try {
+						// string to contain the encrypted text
+						System.out.println("attempting to decrypt array");
+						AES aes = new AES(realAESKey);
+						byte[] decrytpedByteArray = aes.decrypt(encryptedByteArray);
+						String decryptedString = new String(decrytpedByteArray);
+						System.out.println("decrypted String:" + decryptedString);
+
+						//Json Parser to convert objects and string to Json form in order to send it to client
+						Gson gson = new Gson();
+						JsonParser parser = new JsonParser();
+						DBManager db = new DBManager(); //DBManger perform all function that talk to the data bass
+						JsonArray array = parser.parse(decryptedString).getAsJsonArray();
+						System.out.println("array created");
+						String action = gson.fromJson(array.get(0), String.class); //get operation from the client
+						System.out.println("deserialized action:" + action);
+
+
+						if (action.equals("createuser")) {
+							System.out.println("reached create user");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							System.out.println("made user");
+							String result = gson.toJson(String.valueOf(db.createNewUser(user)));
+							System.out.println("made result string" + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse); // createNewUser Function will return 0 if
+							// username is already taken
+							// user registration calls the new user function in db class
+							System.out.println("send successful!");
+
+
+						} else if (action.equals("login")) {
+							System.out.println("reach if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String result = String.valueOf(db.userLogIn(user));
+							Collection collection = new ArrayList(); // a collection with vary types of info
+							collection.add(result);
+							System.out.println("get result: " + result);
+
+							collection.add(db.getFriends(user.getUserName()));
+							System.out.println("get friends list");
+							collection.add(db.getOwnedGroups(user.getUserName()));
+							System.out.println("get owned groups");
+							collection.add(db.getJoinedGroups(user.getUserName()));
+							System.out.println("get Joined groups");
+							collection.add(db.getUserMessages(user.getUserName()));
+							System.out.println("get UserMessages");
+							collection.add(db.getOwnedSessions(user.getUserName()));
+							System.out.println("get OwnedSessions");
+							collection.add(db.getInvitedSessions(user.getUserName()));
+							System.out.println("get InvitedSessions");
+							collection.add(db.getJoinedSessions(user.getUserName()));
+							System.out.println("get JoinedSessions");
+							collection.add(db.getAllOpenSessions());
+							System.out.println("get JAllOpenSessions");
+							collection.add(db.getPendingFriendRequests(user.getUserName()));
+							System.out.println("get PendingFriendRequests");
+							String jString = gson.toJson(collection); //convert the collection to Json format String
+
+							/* send response to client */
+							byte[] encryptedResponseArray = aes.encrypt(jString.getBytes()); //encrypting the string
+							dataNetOutputStream.writeInt(encryptedResponseArray.length);
+							dataNetOutputStream.write(encryptedResponseArray);
+							System.out.println("send string");
+						} else if (action.equals("logout")) {
+							System.out.println("reached logout");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							System.out.println("made user");
+							String result = gson.toJson(String.valueOf(db.userLogOut(user.getUserName())));
+							System.out.println("made result string" + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							dataNetOutputStream.write(encryptedResponse); // createNewUser Function will return 0 if
+							// username is already taken
+							// user registration calls the new user function in db class
+							System.out.println("send successful!");
+						}
+						//set coordinates and check whether or not user is in the open seshion range for check in
+						else if (action.equals("setcoordinates")) {
+							System.out.println("reach setcoordinates if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							System.out.println("User latitude: " + user.getLatitude() + "\n" + "User longitude: " + user.getLongitude());
+							db.setUserCoordinates(user.getUserName(), user.getLatitude(), user.getLongitude());
+							List<UserSession> userSessions = db.getAllOpenSessions();
+							UserSession checkedIn = null;
+							boolean withinRange = false;
+							String result = "0";
+							//loop through the all open session list
+							for (int i = 0; i < userSessions.size(); i++) {
+								System.out.println("inside of for loop");
+								UserSession uSh = userSessions.get(i);
+								//check whether or not the user latitude is in the range
+								if (user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeBottomRight()) {
+									System.out.println("latitude is in the range");
+									//check whether or not the user longitude is in the range
+									if (user.getLongitude() <= uSh.getLongitudeTopLeft() && user.getLongitude() >= uSh.getLongitudeTopRight()) {
+										System.out.println("Longitude is in the range");
+										withinRange = true;
+										checkedIn = uSh; //get the session where the user is.
+										result = String.valueOf(db.checkInSessionUser(checkedIn.getID(), user.getUserName()));
+										System.out.println("Check in function was called");
+										break;
+									}
+								}
+							}
+							Collection collection = new ArrayList();
+							collection.add(result);
+							System.out.println("get result: " + result);
+							if (withinRange) { //if the user is in the range add the checked in session into array
+								collection.add(checkedIn);
+								System.out.println("get the checked in seshion " + checkedIn.getName());
+							}
+							String jString = gson.toJson(collection);
+							byte[] encryptedResponse = aes.encrypt(jString.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("addfriend")) {
+							System.out.println("reach addfriend if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String friendName = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.sendFriendRequest(user.getUserName(), friendName)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("changeuservisibility")) {
+							System.out.println("reach changeuservisibility if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String result = gson.toJson(String.valueOf(db.changeUserVisibility(user)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						}
+						else if(action.equals("managefriendrequest"))
+						{
+							System.out.println("reach managefriendrequest if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							System.out.println("received user " + user.getUserName());
+							String senderName = gson.fromJson(array.get(2), String.class);
+							System.out.println("Sender name " + senderName);
+							boolean requestAceepted = gson.fromJson(array.get(3),boolean.class);
+							System.out.println("accepted " + requestAceepted);
+							String result = gson.toJson(String.valueOf(db.manageFriendRequest(user.getUserName(),
+									senderName,requestAceepted)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						}
+
+						else if (action.equals("getfriend")) {
+							System.out.println("reach getfriend if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String result = gson.toJson(db.getFriends(user.getUserName()));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("removefriend")) {
+							System.out.println("reach removefriend if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String friendName = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.removeFriend(user.getUserName(), friendName)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("reloadseshion")) {
+							System.out.println("reach reloadseshion if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							Collection collection = new ArrayList();
+							collection.add(db.getOwnedSessions(user.getUserName()));
+							System.out.println("get OwnedSessions");
+							collection.add(db.getInvitedSessions(user.getUserName()));
+							System.out.println("get InvitedSessions");
+							collection.add(db.getJoinedSessions(user.getUserName()));
+							System.out.println("get JoinedSessions");
+							collection.add(db.getAllOpenSessions());
+							System.out.println("get JAllOpenSessions");
+							String jString = gson.toJson(collection);
+							/* send response to client */
+							byte[] encryptedResponseArray = aes.encrypt(jString.getBytes());
+							dataNetOutputStream.writeInt(encryptedResponseArray.length);
+							dataNetOutputStream.write(encryptedResponseArray);
+							System.out.println("send string");
+						} else if (action.equals("reloadgroup")) {
+							System.out.println("reach reloadgroup if statement");
+							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							Collection collection = new ArrayList();
+							collection.add(db.getOwnedGroups(user.getUserName()));
+							System.out.println("get owned groups");
+							collection.add(db.getJoinedGroups(user.getUserName()));
+							System.out.println("get Joined groups");
+							String jString = gson.toJson(collection);
+							/* send response to client */
+							byte[] encryptedResponseArray = aes.encrypt(jString.getBytes());
+							dataNetOutputStream.writeInt(encryptedResponseArray.length);
+							dataNetOutputStream.write(encryptedResponseArray);
+							System.out.println("send string");
+						} else if (action == "createnewgroup") {
+							System.out.println("reach createnewgroup if statement");
+							String groupName = gson.fromJson(array.get(1), String.class);
+							UserAccount user = gson.fromJson(array.get(2), UserAccount.class);
+							List<UserAccount> friend = gson.fromJson(array.get(3), List.class);
+							UserGroup group = new UserGroup(groupName, user.getUserName());
+							for (int i = 0; i < friend.size(); i++) {
+								group.addGroupMember(friend.get(i).getUserName());
+							}
+							String result = gson.toJson(String.valueOf(db.createNewGroup(group)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("deletegroup")) {
+							System.out.println("reach deletegroup if statement");
+							UserGroup group = gson.fromJson(array.get(1), UserGroup.class);
+							String result = gson.toJson(String.valueOf(db.deleteGroup(group)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("addgroupmember")) {
+							System.out.println("reach addgroupmember if statement");
+							UserGroup group = gson.fromJson(array.get(1), UserGroup.class);
+							String memberName = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.addGroupMember(group.getID(), memberName)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("removegroupmember")) {
+							System.out.println("reach removegroupmember if statement");
+							UserGroup group = gson.fromJson(array.get(1), UserGroup.class);
+							String memberName = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.removeGroupMember(group.getID(), memberName)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("getgroupmember")) {
+							System.out.println("reach getgroupmember if statement");
+							UserGroup group = gson.fromJson(array.get(1), UserGroup.class);
+							String result = gson.toJson(db.getGroupMembers(group.getID()));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("changegroupname")) {
+							System.out.println("reach changegroupname if statement");
+							UserGroup group = gson.fromJson(array.get(1), UserGroup.class);
+							String newName = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.changeGroupName(group.getID(), newName)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("getgroupmessages")) {
+							System.out.println("reach getgroupmessages if statement");
+							UserGroup group = gson.fromJson(array.get(1), UserGroup.class);
+							String result = gson.toJson(db.getGroupMessages(group.getID()));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("sendmessageindividual")) {
+							System.out.println("reach sendmessageindividual if statement");
+							Message ms = gson.fromJson(array.get(1), Message.class);
+							String recipient = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.sendMessageIndividual(ms, recipient)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("sendmessagegroup")) {
+							System.out.println("reach sendmessagegroup if statement");
+							Message ms = gson.fromJson(array.get(1), Message.class);
+							UserGroup recipient = gson.fromJson(array.get(2), UserGroup.class);
+							String result = gson.toJson(String.valueOf(db.sendMessageGroup(ms, recipient.getID())));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("createseshion")) {
+							System.out.println("reach createnewsession if statement");
+							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
+							String result = gson.toJson(String.valueOf(db.createNewSession(seshion)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("cancelsession")) {
+							System.out.println("reach cancelsession if statement");
+							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
+							String result = gson.toJson(String.valueOf(db.cancelSession(seshion)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("endsession")) {
+							System.out.println("reach endsession if statement");
+							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
+							String result = gson.toJson(String.valueOf(db.endSession(seshion.getID())));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						} else if (action.equals("invitesessionuser")) {
+							System.out.println("reach invitesessionuser if statement");
+							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
+							String userName = gson.fromJson(array.get(2), String.class);
+							String result = gson.toJson(String.valueOf(db.inviteSessionUser(seshion.getID(), userName)));
+							System.out.println("get result: " + result);
+							byte[] encryptedResponse = aes.encrypt(result.getBytes());
+							System.out.println("encryption successful:" + new String(encryptedResponse));
+							int responseSize = encryptedResponse.length;
+							dataNetOutputStream.writeInt(responseSize);
+							dataNetOutputStream.write(encryptedResponse);
+							System.out.println("send string");
+						}
+
+
+					} else
+						System.out.println("byte array has no length outside of while");
+
 				}
-
-				/* decrypt the action */
-				if (encryptedByteArray.length > 0) {
-
-					// try {
-					// string to contain the encrypted text
-					System.out.println("attempting to decrypt array");
-					AES aes = new AES(realAESKey);
-					byte[] decrytpedByteArray = aes.decrypt(encryptedByteArray);
-					String decryptedString = new String(decrytpedByteArray);
-					System.out.println("decrypted String:" + decryptedString);
-
-					Gson gson = new Gson();
-					JsonParser parser = new JsonParser();
-					JsonArray array = parser.parse(decryptedString).getAsJsonArray();
-					System.out.println("array created");
-					String action = gson.fromJson(array.get(0), String.class);
-					DBManager db = new DBManager();
-					System.out.println("deserialized action:" + action);
-
-					/// ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					// List<UserGroup> groupList = new ArrayList<UserGroup>();
-					// List<UserSession> sessionList = new ArrayList<UserSession>();
-
-					if (action.equals("createuser")) {
-						System.out.println("reached create user");
-						UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-						System.out.println("made user");
-						String result = gson.toJson(String.valueOf(db.createNewUser(user)));
-						System.out.println("made result string" + result);
-						byte[] encryptedResponse = aes.encrypt(result.getBytes());
-						System.out.println("encryption successful:" + new String(encryptedResponse));
-						int responseSize = encryptedResponse.length;
-						dataNetOutputStream.writeInt(responseSize);
-						dataNetOutputStream.write(encryptedResponse); // createNewUser Function will return 0 if
-																		// username is already taken
-						// user registration calls the new user function in db class
-						System.out.println("send successful!");
-						
-						
-					} else if (action.equals("login")) {
-						System.out.println("reach if statement");
-						UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-						String result = String.valueOf(db.userLogIn(user));
-						Collection collection = new ArrayList();
-						collection.add(result);
-						System.out.println("get result: " + result);
-						// collection.add(db.getfriendrequest())
-						collection.add(db.getFriends(user.getUserName()));
-						System.out.println("get friends list");
-						collection.add(db.getOwnedGroups(user.getUserName()));
-						System.out.println("get owned groups");
-						collection.add(db.getJoinedGroups(user.getUserName()));
-						System.out.println("get Joined groups");
-						collection.add(db.getUserMessages(user.getUserName()));
-						System.out.println("get UserMessages");
-						collection.add(db.getOwnedSessions(user.getUserName()));
-						System.out.println("get OwnedSessions");
-						collection.add(db.getInvitedSessions(user.getUserName()));
-						System.out.println("get InvitedSessions");
-						collection.add(db.getJoinedSessions(user.getUserName()));
-						System.out.println("get JoinedSessions");
-						collection.add(db.getAllOpenSessions());
-						System.out.println("get JAllOpenSessions");
-						String jString = gson.toJson(collection);
-						
-						/* send response to client */
-						byte[] encryptedResponseArray = aes.encrypt(jString.getBytes());
-						dataNetOutputStream.writeInt(encryptedResponseArray.length);
-						dataNetOutputStream.write(encryptedResponseArray);
-						System.out.println("send string");
-					}
-
-					else if (action.equals("logout")) {
-						System.out.println("reached logout");
-						UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-						System.out.println("made user");
-						String result = gson.toJson(String.valueOf(db.userLogOut(user.getUserName())));
-						System.out.println("made result string" + result);
-						byte[] encryptedResponse = aes.encrypt(result.getBytes());
-						System.out.println("encryption successful:" + new String(encryptedResponse));
-						dataNetOutputStream.write(encryptedResponse); // createNewUser Function will return 0 if
-																		// username is already taken
-						// user registration calls the new user function in db class
-						System.out.println("send successful!");
-					}
-					// else if(action=="setcoordinates")
-					// {
-					// double latitude = (Double)json.get("latitude");
-					// aUser.setLatitude(latitude);
-					// double longitude =(Double)json.get("longitude");
-					// aUser.setLongitude(longitude);
-					// String result = String.valueOf(db.setUserCoordinates(aUser.getUserName(),
-					// latitude, longitude));
-					// encryptedByteArray = aes.encrypt(result.getBytes());
-					// dataNetOutputStream.write(encryptedByteArray);
-					// }
-					/*
-					 * else if(Action=="addfriend") { String friendname = (String)
-					 * json.get("friendname"); String result =
-					 * String.valueOf(db.sendFriendRequest(aUser.getUserName(), friendname));
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="changeUservisibility") { aUser.changeProfileVisibility(); String
-					 * result = String.valueOf(db.changeUserVisibility(aUser)); encryptedByteArray =
-					 * aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } /*else
-					 * if(Action=="friendRequest") { //need a function which returns all friends
-					 * that isfriendrequestaccepted = false //then in the client user can decide
-					 * whether to accept or not. Once user accept call db.manageFriendRequest String
-					 * result = String.valueOf(db.manageFriendRequest(aUser)); encryptedByteArray =
-					 * Cryptor.encryption(key, result); outStream.write(encryptedByteArray); }
-					 * 
-					 * else if(Action=="getfriend") { List<String> result =
-					 * db.getFriends(aUser.getUserName()); ObjectOutputStream oos = new
-					 * ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="removefriend") { String friendname =(String)
-					 * json.get("friendname"); String result =
-					 * String.valueOf(db.removeFriend(aUser.getUserName(),friendname));
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="getownedsessions") { List<UserSession> result =
-					 * db.getOwnedSessions(aUser.getUserName()); ObjectOutputStream oos = new
-					 * ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="getinvitedsessions") { List<UserSession> result =
-					 * db.getInvitedSessions(aUser.getUserName()); ObjectOutputStream oos = new
-					 * ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="getjoinedsessions") { List<UserSession> result =
-					 * db.getJoinedSessions(aUser.getUserName()); ObjectOutputStream oos = new
-					 * ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="getownedgroups") { List<UserGroup> result =
-					 * db.getOwnedGroups(aUser.getUserName()); groupList = result;
-					 * ObjectOutputStream oos = new ObjectOutputStream(bos);
-					 * oos.writeObject(result); byte[] bytes = bos.toByteArray(); encryptedByteArray
-					 * = aes.encrypt(bytes); dataBufferedNetOutputStream.write(encryptedByteArray);
-					 * } else if(Action=="getjoinedgroups") { List<UserGroup> result =
-					 * db.getJoinedGroups(aUser.getUserName()); ObjectOutputStream oos = new
-					 * ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="getusermessages") { List<Message> result =
-					 * db.getUserMessages(aUser.getUserName()); ObjectOutputStream oos = new
-					 * ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="createnewgroup") { String groupname = (String)
-					 * json.get("groupname"); UserGroup group = new UserGroup(groupname,
-					 * aUser.getUserName()); groupList.add(group); String result =
-					 * String.valueOf(db.createNewGroup(group)); encryptedByteArray =
-					 * aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="deletegroup") { //String groupname = (String)
-					 * json.get("groupname"); UUID groupid = (UUID) json.get("groupid"); for(int i
-					 * =0 ; i<groupList.size(); i++) { if(groupList.get(i).getID() == groupid) {
-					 * String result = String.valueOf(db.deleteGroup(groupList.get(i)));
-					 * groupList.remove(i); encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } } else
-					 * if(Action=="addgroupmember") { String memberUsername = (String)
-					 * json.get("memberusername"); UUID groupid = (UUID) json.get("groupid");
-					 * for(int i =0 ; i<groupList.size(); i++) { if(groupList.get(i).getID() ==
-					 * groupid) { String result = String.valueOf(db.addGroupMember(groupid,
-					 * memberUsername)); groupList.get(i).addGroupMember(memberUsername);
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } } else
-					 * if(Action=="removegroupmember") { String memberUsername = (String)
-					 * json.get("memberusername"); UUID groupid = (UUID) json.get("groupid");
-					 * for(int i =0 ; i<groupList.size(); i++) { if(groupList.get(i).getID() ==
-					 * groupid) { String result = String.valueOf(db.removeGroupMember(groupid,
-					 * memberUsername)); groupList.get(i).removeGroupMember(memberUsername);
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } } else
-					 * if(Action=="getgroupmember") { UUID groupid = (UUID) json.get("groupid");
-					 * List<String> result = db.getGroupMembers(groupid); ObjectOutputStream oos =
-					 * new ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="changegroupname") { String newname = (String)
-					 * json.get("newname"); UUID groupid = (UUID) json.get("groupid"); for(int i =0
-					 * ; i<groupList.size(); i++) { if(groupList.get(i).getID() == groupid) { String
-					 * result = String.valueOf(db.changeGroupName(groupid, newname));
-					 * groupList.get(i).setName(newname); encryptedByteArray =
-					 * aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } } else
-					 * if(Action=="getgroupmessages") { UUID groupid = (UUID) json.get("groupid");
-					 * for(int i =0 ; i<groupList.size(); i++) { if(groupList.get(i).getID() ==
-					 * groupid) { List<Message> result= db.getGroupMessages(groupid);
-					 * ObjectOutputStream oos = new ObjectOutputStream(bos);
-					 * oos.writeObject(result); byte[] bytes = bos.toByteArray(); encryptedByteArray
-					 * = aes.encrypt(bytes); dataBufferedNetOutputStream.write(encryptedByteArray);
-					 * } } } else if(Action=="sendmessageindividual") { LocalDate dateCreated =
-					 * (LocalDate) json.get("datecreated"); LocalTime timeCreated = (LocalTime)
-					 * json.get("timecreated"); String messageContent = (String)
-					 * json.get("messagecontent"); String recipient = (String)
-					 * json.get("recipient"); Message msg = new Message(aUser.getUserName(),
-					 * recipient, dateCreated,timeCreated,messageContent,true,false); String result
-					 * = String.valueOf(db.sendMessageIndividual(msg, recipient));
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="sendmessagegroup") { LocalDate dateCreated = (LocalDate)
-					 * json.get("datecreated"); LocalTime timeCreated = (LocalTime)
-					 * json.get("timecreated"); String messageContent = (String)
-					 * json.get("messagecontent"); UUID groupid = (UUID) json.get("groupid");
-					 * Message msg = new Message(aUser.getUserName(), null,
-					 * dateCreated,timeCreated,messageContent,false,true); String result =
-					 * String.valueOf(db.sendMessageGroup(msg, groupid)); encryptedByteArray =
-					 * aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action==" createnewsession") { String sessionname = (String)
-					 * json.get("sessionname"); double latitudeTopLeft = (double)
-					 * json.get("latitudetopleft"); double latitudeTopRight = (double)
-					 * json.get("latitudetopright"); double longitudeTopRight = (double)
-					 * json.get("longitudetopright"); double longitudeTopLeft = (double)
-					 * json.get("longitudetopleft"); double latitudeBottomLeft = (double)
-					 * json.get("latitudebottomleft"); double longitudeBottomLeft = (double)
-					 * json.get("longitudebottomleft"); double latitudeBottomRight = (double)
-					 * json.get("latitudebottomright"); double longitudeBottomRight = (double)
-					 * json.get("longitudebottomright"); LocalDate startDate = (LocalDate)
-					 * json.get("startdate"); LocalTime startTime = (LocalTime)
-					 * json.get("starttime"); boolean issessionprivate = (boolean)
-					 * json.get("issessionprivate"); UserSession session = new
-					 * UserSession(sessionname,aUser.getUserName(),latitudeTopLeft,latitudeTopRight,
-					 * longitudeTopRight,
-					 * longitudeTopLeft,latitudeBottomLeft,longitudeBottomLeft,latitudeBottomRight,
-					 * longitudeBottomRight, startDate, startTime,issessionprivate);
-					 * sessionList.add(session); String result =
-					 * String.valueOf(db.createNewSession(session)); encryptedByteArray =
-					 * aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="cancelsession") { UUID sessionID = (UUID) json.get("sessionid");
-					 * for(int i =0 ; i<sessionList.size(); i++) { if(sessionList.get(i).getID() ==
-					 * sessionID) { String result =
-					 * String.valueOf(db.cancelSession(sessionList.get(i))); sessionList.remove(i);
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } }
-					 * 
-					 * else if(Action=="endsession") { UUID sessionID = (UUID)
-					 * json.get("sessionid"); for(int i =0 ; i<sessionList.size(); i++) {
-					 * if(sessionList.get(i).getID() == sessionID) { String result =
-					 * String.valueOf(db.endSession(sessionID)); sessionList.remove(i);
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } } else
-					 * if(Action=="invitesessionuser") { UUID sessionID = (UUID)
-					 * json.get("sessionid"); String username = (String) json.get("username");
-					 * for(int i =0 ; i<sessionList.size(); i++) { if(sessionList.get(i).getID() ==
-					 * sessionID) { String result =
-					 * String.valueOf(db.inviteSessionUser(sessionID,username));
-					 * sessionList.get(i).inviteUser(username); encryptedByteArray =
-					 * aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); break; } } } else
-					 * if(Action=="checkinsessionuser") { UUID sessionID = (UUID)
-					 * json.get("sessionid"); String result =
-					 * String.valueOf(db.checkInSessionUser(sessionID,aUser.getUserName()));
-					 * encryptedByteArray = aes.encrypt(result.getBytes());
-					 * dataNetOutputStream.write(encryptedByteArray); } else
-					 * if(Action=="checkinsessionuser") { UUID sessionID = (UUID)
-					 * json.get("sessionid"); String result =
-					 * String.valueOf(db.getAllSessionUsers(sessionID)); ObjectOutputStream oos =
-					 * new ObjectOutputStream(bos); oos.writeObject(result); byte[] bytes =
-					 * bos.toByteArray(); encryptedByteArray = aes.encrypt(bytes);
-					 * dataBufferedNetOutputStream.write(encryptedByteArray); }
-					 */
-
-				} else
-					System.out.println("byte array has no length outside of while");
-
 			}
 
 		} catch (EOFException eofe) {
@@ -430,4 +546,4 @@ public class Server extends Thread {
 	 * socket = server.accept();
 	 */
 
-} 
+}
