@@ -9,6 +9,7 @@ public interface UserAccountDao {
     public int userLogOut(String username);
     public int setUserCoordinates(String username, double latitude, double longitude);
     public List<Double> getUserCoordinates(String username);
+    public List<UserAccount> searchForFriend(String userToFind);
     public int sendFriendRequest(String theUser, String friendUsername);
     public int manageFriendRequest(String theUser, String senderUsername, boolean requestAccepted);
     public int removeFriend(String theUser, String friendUsername);

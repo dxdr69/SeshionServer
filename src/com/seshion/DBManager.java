@@ -288,6 +288,40 @@ public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, 
         return coordinates;
     }
 
+    public List<UserAccount> searchForFriend(String userToFind)
+    {
+        List<UserAccount> foundUsers = new ArrayList<UserAccount>();
+
+        try {
+            String SQL = "SELECT username, isonline, description "
+            + "FROM useraccount "
+            + "WHERE username LIKE '?%' "
+            + "ORDER BY username";
+            Connection conn = connectToDB();
+            PreparedStatement pstmt = conn.prepareStatement(SQL);
+            pstmt.setString(1, userToFind);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next())
+            {
+                String username = rs.getString("username");
+                boolean isOnline = rs.getBoolean("isonline");
+                String description = rs.getString("description");
+
+                UserAccount user = new UserAccount(username, isOnline);
+                user.setDescription(description);
+
+                foundUsers.add(user);
+            }
+
+        } catch(SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return foundUsers;
+    }
+
     public int sendFriendRequest(String theUser, String friendUserName)
     {
         int addFriendSuccessful = -1;
@@ -1501,6 +1535,46 @@ public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, 
         }
 
         return checkInUserSuccessful;
+    }
+
+    public int removeSessionUser(UUID sessionID, String username)
+    {
+        int removeUserSuccessful = -1;
+
+        try {
+            String SQL = "DELETE FROM usersession_showedupuser "
+            + "WHERE sid = ? AND theuser = ?";
+            Connection conn = connectToDB();
+            PreparedStatement pstmt = conn.prepareStatement(SQL);
+            pstmt.setObject(1, sessionID);
+            pstmt.setString(2, username);
+
+            int currentlyAffectedRows = pstmt.executeUpdate();
+
+            SQL = "DELETE FROM contains "
+            + "WHERE sid = ? AND theuser = ?";
+            pstmt = conn.prepareStatement(SQL);
+            pstmt.setObject(1, sessionID);
+            pstmt.setString(2, username);
+
+            int totalAffectedRows = currentlyAffectedRows + pstmt.executeUpdate();
+            pstmt.close();
+            conn.close();
+
+            if (totalAffectedRows == 2)
+            {
+                removeUserSuccessful = 1;
+            }
+            else
+            {
+                removeUserSuccessful = 0;
+            }
+
+        } catch(SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return removeUserSuccessful;
     }
 
     public List<String> getAllSessionUsers(UUID sessionID)
