@@ -191,6 +191,8 @@ public class Server extends Thread {
 
 							collection.add(db.getFriends(user.getUserName()));
 							System.out.println("get friends list");
+							collection.add(db.getPendingFriendRequests(user.getUserName()));
+							System.out.println("get PendingFriendRequests");
 							collection.add(db.getOwnedGroups(user.getUserName()));
 							System.out.println("get owned groups");
 							collection.add(db.getJoinedGroups(user.getUserName()));
@@ -205,8 +207,6 @@ public class Server extends Thread {
 							System.out.println("get JoinedSessions");
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");
-							collection.add(db.getPendingFriendRequests(user.getUserName()));
-							System.out.println("get PendingFriendRequests");
 							String jString = gson.toJson(collection); //convert the collection to Json format String
 
 							/* send response to client */
