@@ -193,8 +193,9 @@ public class Server extends Thread {
 
 							collection.add(db.getFriends(user.getUserName()));
 							System.out.println("get friends list");
-                            collection.add(db.getPendingFriendRequests(user.getUserName()));
-                            System.out.println("get PendingFriendRequests");
+							collection.add(db.getPendingFriendRequests(user.getUserName()));
+							System.out.println("get PendingFriendRequests");
+
 							collection.add(db.getOwnedGroups(user.getUserName()));
 							System.out.println("get owned groups");
 							collection.add(db.getJoinedGroups(user.getUserName()));
@@ -210,13 +211,12 @@ public class Server extends Thread {
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");
 							String jString = gson.toJson(collection); //convert the collection to Json format String
-
+							System.out.println("collection.toString():" + collection);
 							/* send response to client */
 							byte[] encryptedResponseArray = aes.encrypt(jString.getBytes()); //encrypting the string
-							int length = encryptedResponseArray.length;
-							System.out.println("length is " + length);
-							dataNetOutputStream.writeInt(length);
-							dataNetOutputStream.flush();
+							dataNetOutputStream.writeInt(encryptedResponseArray.length);
+							System.out.println("encryptedResponseArray.length:" + encryptedResponseArray.length);
+
 							dataNetOutputStream.write(encryptedResponseArray);
 							System.out.println("send string");
 						} else if (action.equals("logout")) {

@@ -9,5 +9,6 @@ public interface UserSessionDao {
     public int endSession(UUID sessionID);
     public int inviteSessionUser(UUID sessionID, String username);
     public int checkInSessionUser(UUID sessionID, String username);
+    public int removeSessionUser(UUID sessionID, String username);
     public List<UserSession> getAllOpenSessions();
 }

@@ -1,9 +1,13 @@
 package com.seshion;
 
+import java.io.Serializable;
+import com.seshion.UserGroup;
+import com.seshion.UserSession;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserAccount {
+public class UserAccount implements Serializable {
     private String username;
     private String password;
     private double currentLatitude;
@@ -11,13 +15,32 @@ public class UserAccount {
     private String description;
     private boolean isOnline;
     private boolean isVisibilityPrivate;
-    private List<String> friends;
+    private List<UserAccount> friends;
+    private List<UserAccount> friendRequests;
     private List<UserSession> ownedSessions;
     private List<UserSession> invitedSessions;
     private List<UserSession> joinedSessions;
     private List<UserGroup> ownedGroups;
     private List<UserGroup> joinedGroups;
     private List<Message> messages;
+    private List<UserSession> allOpenSessions;
+
+
+
+    UserAccount(String username)    {
+
+        this.username = username;
+        this.password = "";
+        isOnline = true;
+        isVisibilityPrivate = false;
+        friends = new ArrayList<UserAccount>();
+        ownedSessions = new ArrayList<UserSession>();
+        invitedSessions = new ArrayList<UserSession>();
+        joinedSessions = new ArrayList<UserSession>();
+        ownedGroups = new ArrayList<UserGroup>();
+        joinedGroups = new ArrayList<UserGroup>();
+        messages = new ArrayList<Message>();
+    }
 
     UserAccount(String username, String password)
     {
@@ -25,7 +48,7 @@ public class UserAccount {
         this.password = password;
         isOnline = true;
         isVisibilityPrivate = false;
-        friends = new ArrayList<String>();
+        friends = new ArrayList<UserAccount>();
         ownedSessions = new ArrayList<UserSession>();
         invitedSessions = new ArrayList<UserSession>();
         joinedSessions = new ArrayList<UserSession>();
@@ -35,8 +58,8 @@ public class UserAccount {
     }
 
     UserAccount(String username, double currentLatitude, double currentLongitude,
-    boolean isOnline, boolean isVisibilityPrivate, List<UserSession> joinedSessions, 
-    List<UserSession> ownedSessions)
+                boolean isOnline, boolean isVisibilityPrivate, List<UserSession> joinedSessions,
+                List<UserSession> ownedSessions)
     {
         this.username = username;
         password = null;
@@ -158,19 +181,32 @@ public class UserAccount {
         }
     }
 
-    public void addFriend(String friendUsername)
+    public void addFriend(UserAccount friendUsername)
     {
         friends.add(friendUsername);
     }
 
-    public void removeFriend(String friendUsername)
+    public void removeFriend(UserAccount friendUsername)
     {
         friends.remove(friendUsername);
     }
 
-    public List<String> getAllFriends()
+    public List<UserAccount> getAllFriends()
     {
         return friends;
+    }
+
+    public void setAllFriends(List<UserAccount> friends)
+    {
+        this.friends = friends;
+    }
+
+    public List<UserAccount> getFriendRequests() {
+        return friendRequests;
+    }
+
+    public void setFriendRequests(List<UserAccount> friendRequests) {
+        this.friendRequests = friendRequests;
     }
 
     public void addOwnedSession(UserSession sesh)
@@ -232,4 +268,37 @@ public class UserAccount {
     {
         return messages;
     }
+
+    public void setOwnedSessions(List<UserSession> ownedSessions) {
+        this.ownedSessions = ownedSessions;
+    }
+
+    public void setInvitedSessions(List<UserSession> invitedSessions) {
+        this.invitedSessions = invitedSessions;
+    }
+
+    public void setJoinedSessions(List<UserSession> joinedSessions) {
+        this.joinedSessions = joinedSessions;
+    }
+
+    public void setOwnedGroups(List<UserGroup> ownedGroups) {
+        this.ownedGroups = ownedGroups;
+    }
+
+    public void setJoinedGroups(List<UserGroup> joinedGroups) {
+        this.joinedGroups = joinedGroups;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+
+    public List<UserSession> getAllOpenSessions() {
+        return allOpenSessions;
+    }
+
+    public void setAllOpenSessions(List<UserSession> allOpenSessions) {
+        this.allOpenSessions = allOpenSessions;
+    }
+
 }
