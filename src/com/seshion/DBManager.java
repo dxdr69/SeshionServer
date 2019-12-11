@@ -295,11 +295,11 @@ public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, 
         try {
             String SQL = "SELECT username, isonline, description "
             + "FROM useraccount "
-            + "WHERE username LIKE '?%' "
+            + "WHERE username LIKE ('' || ?) "
             + "ORDER BY username";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
-            pstmt.setString(1, userToFind);
+            pstmt.setString(1, userToFind + "%");
 
             ResultSet rs = pstmt.executeQuery();
 
