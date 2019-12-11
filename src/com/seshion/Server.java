@@ -338,8 +338,8 @@ public class Server extends Thread {
 							System.out.println("send string");
 						} else if(action.equals("searchforfriend")) {
                             System.out.println("reach searchforfriend if statement");
-                            UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-                            String friendName = gson.fromJson(array.get(2), String.class);
+                            String friendName = gson.fromJson(array.get(1), String.class);
+                            //String friendName = gson.fromJson(array.get(2), String.class);
 							String result = gson.toJson(db.searchForFriend(friendName));
                             System.out.println("get result: " + result);
                             byte[] encryptedResponse = aes.encrypt(result.getBytes());
