@@ -116,9 +116,11 @@ public class UserSession {
         hasEnded = false;
         this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
+        
+        timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
         startDateText = startDate.toString();
-        startTimeText = startTime.toString();
+        startTimeText = startTime.format(timeFormat);
 
         if (endDate == null)
         {
@@ -135,7 +137,7 @@ public class UserSession {
         }
         else
         {
-            endTimeText = endTime.toString();
+            endTimeText = endTime.format(timeFormat);
         }
     }
 
