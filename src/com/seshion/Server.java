@@ -2,6 +2,7 @@ package com.seshion;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.*;
@@ -37,6 +38,8 @@ public class Server extends Thread {
 	private String privateKey = null;
 	/* AES */
 	private String aesSymmetricKey = null;
+
+	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
 	/* constructor with parameter port number */
 	public Server(Socket socket) {
@@ -498,12 +501,22 @@ public class Server extends Thread {
 						} else if (action.equals("createseshion")) {
 							System.out.println("reach createnewsession if statement");
 							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
+							LocalTime startTime = LocalTime.parse(seshion.getStartDateText(), formatter);
+							LocalTime endTime;
+							if (seshion.getEndTimeText() != null)
+							{
+								endTime = LocalTime.parse(seshion.getEndTimeText(), formatter);
+							}
+							else
+							{
+								endTime = null;
+							}
 							UserSession seshionWithDateTime = new UserSession(seshion.getName(),
 									seshion.getOwnerUsername(), seshion.getDescription(),
 									seshion.getLatitudeTopLeft(), seshion.getLongitudeTopLeft(),
 									seshion.getLatitudeBottomRight(), seshion.getLongitudeBottomRight(),
-									seshion.getStartDate(), seshion.getEndDate(), seshion.getStartTime(),
-									seshion.getEndTime(), seshion.isSessionPrivate(), seshion.getInvitedUsers());
+									seshion.getStartDate(), seshion.getEndDate(), startTime,
+									endTime, seshion.isSessionPrivate(), seshion.getInvitedUsers());
 							String result = gson.toJson(String.valueOf(db.createNewSession(seshionWithDateTime)));
 							System.out.println("get result: " + result);
 							byte[] encryptedResponse = aes.encrypt(result.getBytes());

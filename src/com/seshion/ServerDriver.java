@@ -99,7 +99,7 @@ public class ServerDriver {
 //		UserGroup ug4 = new UserGroup("Group project", "NickIsTheMan");
 //
 //		System.out.println("groups created");
-		DBManager dbMan = new DBManager();
+//		DBManager dbMan = new DBManager();
 //		dbMan.createNewGroup(ug1);
 //		dbMan.createNewGroup(ug2);
 //		dbMan.createNewGroup(ug3);

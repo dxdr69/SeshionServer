@@ -370,4 +370,26 @@ public class UserSession {
     {
         return showedUpUsers;
     }
+
+    public String getStartTimeText()
+    {
+        return startTimeText;
+    }
+
+    public String getEndTimeText()
+    {
+        return endTimeText;
+    }
+
+    public String getStartDateText()
+    {
+        return startDateText;
+    }
+
+    public String getEndDateText()
+    {
+        return endDateText;
+    }
+
+
 }
