@@ -271,9 +271,12 @@ public class Server extends Thread {
 							System.out.println("send string");
 						} else if (action.equals("addfriend")) {
 							System.out.println("reach addfriend if statement");
-							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							//UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String user = gson.fromJson(array.get(1), String.class);
+							System.out.println("User name " + user);
 							String friendName = gson.fromJson(array.get(2), String.class);
-							String result = gson.toJson(String.valueOf(db.sendFriendRequest(user.getUserName(), friendName)));
+							System.out.println("Friend name " + friendName);
+							String result = gson.toJson(String.valueOf(db.sendFriendRequest(user, friendName)));
 							System.out.println("get result: " + result);
 							byte[] encryptedResponse = aes.encrypt(result.getBytes());
 							System.out.println("encryption successful:" + new String(encryptedResponse));
@@ -296,13 +299,14 @@ public class Server extends Thread {
 						else if(action.equals("managefriendrequest"))
 						{
 							System.out.println("reach managefriendrequest if statement");
-							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-							System.out.println("received user " + user.getUserName());
+							//UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
+							String user = gson.fromJson(array.get(1), String.class);
+							System.out.println("received user " + user);
 							String senderName = gson.fromJson(array.get(2), String.class);
 							System.out.println("Sender name " + senderName);
 							boolean requestAceepted = gson.fromJson(array.get(3),boolean.class);
 							System.out.println("accepted " + requestAceepted);
-							String result = gson.toJson(String.valueOf(db.manageFriendRequest(user.getUserName(),
+							String result = gson.toJson(String.valueOf(db.manageFriendRequest(user,
 									senderName,requestAceepted)));
 							System.out.println("get result: " + result);
 							byte[] encryptedResponse = aes.encrypt(result.getBytes());
