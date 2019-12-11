@@ -99,7 +99,7 @@ public class ServerDriver {
 //		UserGroup ug4 = new UserGroup("Group project", "NickIsTheMan");
 //
 //		System.out.println("groups created");
-//		DBManager dbMan = new DBManager();
+		DBManager dbMan = new DBManager();
 //		dbMan.createNewGroup(ug1);
 //		dbMan.createNewGroup(ug2);
 //		dbMan.createNewGroup(ug3);
@@ -109,28 +109,28 @@ public class ServerDriver {
 //		dbMan.addGroupMember(ug4.getID(), "Twizzy");
 //
 //		System.out.println("Joined Group");
-//
+////
 //		ArrayList<String> invitedUsers = new ArrayList<String>();
 //		invitedUsers.add("Twizzy");
 //		invitedUsers.add("David1");
-//
-//		UserSession sesh = new UserSession("Ridgefield Park", "NickIsTheMan", null,
-//				41.063378, -73.546277,
-//				-73.546277, 41.062885,
-//				41.063378, -73.545720,
-//				41.062885, -73.545720,
+//		invitedUsers.add("NickIsTheMan");
+//		invitedUsers.add("Wushenghui");
+////
+//		UserSession sesh = new UserSession("PresentationSesh", "Twizzy", "We look so good right now",
+//				41.401121, -73.445337,
+//				41.400845, -73.445098,
 //				LocalDate.now(), null, LocalTime.now(), null,
-//				false, invitedUsers);
+//				false, invitedUsers);		
 //
 //		System.out.println("createdusersession object");
-//		//      
+//		     
 //
 //		dbMan.createNewSession(sesh);
 //		System.out.println("created new sesh");
 //		UUID id = sesh.getID();
 //		System.out.println("id = " + id.toString());
-//		dbMan.checkInSessionUser(id, "Twizzy");
-//		System.out.println("checked twizzy in");
+		//dbMan.checkInSessionUser(id, "Twizzy");
+		//System.out.println("checked twizzy in");
 
 		ServerSocket Server = new ServerSocket(8090);
 		System.out.println("waiting for connect");

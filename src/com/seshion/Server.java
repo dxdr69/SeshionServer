@@ -498,7 +498,13 @@ public class Server extends Thread {
 						} else if (action.equals("createseshion")) {
 							System.out.println("reach createnewsession if statement");
 							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
-							String result = gson.toJson(String.valueOf(db.createNewSession(seshion)));
+							UserSession seshionWithDateTime = new UserSession(seshion.getName(),
+									seshion.getOwnerUsername(), seshion.getDescription(),
+									seshion.getLatitudeTopLeft(), seshion.getLongitudeTopLeft(),
+									seshion.getLatitudeBottomRight(), seshion.getLongitudeBottomRight(),
+									seshion.getStartDate(), seshion.getEndDate(), seshion.getStartTime(),
+									seshion.getEndTime(), seshion.isSessionPrivate(), seshion.getInvitedUsers());
+							String result = gson.toJson(String.valueOf(db.createNewSession(seshionWithDateTime)));
 							System.out.println("get result: " + result);
 							byte[] encryptedResponse = aes.encrypt(result.getBytes());
 							System.out.println("encryption successful:" + new String(encryptedResponse));
