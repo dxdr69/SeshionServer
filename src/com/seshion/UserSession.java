@@ -21,9 +21,13 @@ public class UserSession {
     private double latitudeBottomRight;
     private double longitudeBottomRight;
     private LocalDate startDate;
+    private String startDateText;
     private LocalDate endDate;
+    private String endDateText;
     private LocalTime startTime;
+    private String startTimeText;
     private LocalTime endTime;
+    private String endTimeText;
     private boolean isSessionPrivate;
     private boolean hasEnded;
     private List<String> invitedUsers;
@@ -59,6 +63,27 @@ public class UserSession {
         hasEnded = false;
         this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
+
+        startDateText = startDate.toString();
+        startTimeText = startTime.toString();
+
+        if (endDate == null)
+        {
+            endDateText = null;
+        }
+        else
+        {
+            endDateText = endDate.toString();
+        }
+
+        if (endTime == null)
+        {
+            endTimeText = null;
+        }
+        else
+        {
+            endTimeText = endTime.toString();
+        }
     }
 
     UserSession(String name, String owner, String description,
@@ -88,6 +113,27 @@ public class UserSession {
         hasEnded = false;
         this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
+
+        startDateText = startDate.toString();
+        startTimeText = startTime.toString();
+
+        if (endDate == null)
+        {
+            endDateText = null;
+        }
+        else
+        {
+            endDateText = endDate.toString();
+        }
+
+        if (endTime == null)
+        {
+            endTimeText = null;
+        }
+        else
+        {
+            endTimeText = endTime.toString();
+        }
     }
 
     public int getImg() {
@@ -220,7 +266,7 @@ public class UserSession {
 
     public LocalDate getStartDate()
     {
-        return startDate;
+        return LocalDate.parse(startDateText);
     }
 
     public void setEndDate(LocalDate date)
@@ -230,7 +276,14 @@ public class UserSession {
 
     public LocalDate getEndDate()
     {
-        return endDate;
+        if (endDate != null)
+        {
+            return LocalDate.parse(endDateText);
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public void setStartTime(LocalTime time)
@@ -241,7 +294,7 @@ public class UserSession {
     public LocalTime getStartTime()
     {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-        String startTimeText = timeFormat.format(startTime);
+															
         return LocalTime.parse(startTimeText, timeFormat);
     }
 
@@ -255,7 +308,7 @@ public class UserSession {
         if (endTime != null)
         {
             DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-            String endTimeText = timeFormat.format(endTime);
+															
             return LocalTime.parse(endTimeText, timeFormat);
         }
         else
@@ -320,5 +373,24 @@ public class UserSession {
     {
         return showedUpUsers;
     }
-    
+
+    public String getStartTimeText()
+    {
+        return startTimeText;
+    }
+
+    public String getEndTimeText()
+    {
+        return endTimeText;
+    }
+
+    public String getStartDateText()
+    {
+        return startDateText;
+    }
+
+    public String getEndDateText()
+    {
+        return endDateText;
+    }
 }
