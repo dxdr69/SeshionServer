@@ -1,13 +1,11 @@
 package com.seshion;
 
-import java.io.Serializable;
 import com.seshion.UserGroup;
 import com.seshion.UserSession;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserAccount implements Serializable {
+public class UserAccount {
     private String username;
     private String password;
     private double currentLatitude;

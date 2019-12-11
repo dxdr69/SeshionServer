@@ -33,7 +33,7 @@ public class UserSession {
     private List<String> invitedUsers;
     private List<String> showedUpUsers;
     private int img;
-    private DateTimeFormatter timeFormat;
+    private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     UserSession(String name, String owner, String description,
                 double latitudeTopLeft, double longitudeTopLeft,
@@ -64,8 +64,6 @@ public class UserSession {
         hasEnded = false;
         this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
-
-        timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
         startDateText = startDate.toString();
         startTimeText = startTime.format(timeFormat);
@@ -116,8 +114,6 @@ public class UserSession {
         hasEnded = false;
         this.invitedUsers = invitedUsers;
         showedUpUsers = new ArrayList<String>();
-        
-        timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
 
         startDateText = startDate.toString();
         startTimeText = startTime.format(timeFormat);
@@ -281,7 +277,7 @@ public class UserSession {
 
     public LocalDate getEndDate()
     {
-        if (endDate != null)
+        if (endDateText != null)
         {
             return LocalDate.parse(endDateText);
         }
@@ -308,7 +304,7 @@ public class UserSession {
 
     public LocalTime getEndTime()
     {
-        if (endTime != null)
+        if (endTimeText != null)
         {
             return LocalTime.parse(endTimeText, timeFormat);
         }
@@ -373,25 +369,5 @@ public class UserSession {
     public List<String> getShowedUpUsers()
     {
         return showedUpUsers;
-    }
-
-    public String getStartTimeText()
-    {
-        return startTimeText;
-    }
-
-    public String getEndTimeText()
-    {
-        return endTimeText;
-    }
-
-    public String getStartDateText()
-    {
-        return startDateText;
-    }
-
-    public String getEndDateText()
-    {
-        return endDateText;
     }
 }
