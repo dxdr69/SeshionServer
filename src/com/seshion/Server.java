@@ -158,8 +158,8 @@ public class Server extends Thread {
 
 						Gson gson = new Gson();
 						JsonParser parser = new JsonParser();
-						boolean isUserCheckedIn = false;
-                        UserSession checkedIn = null;
+						//boolean isUserCheckedIn = false;
+
 						DBManager db = new DBManager(); //DBManger perform all function that talk to the data bass
 						JsonArray array = parser.parse(decryptedString).getAsJsonArray();
 						System.out.println("array created");
@@ -193,9 +193,8 @@ public class Server extends Thread {
 
 							collection.add(db.getFriends(user.getUserName()));
 							System.out.println("get friends list");
-							collection.add(db.getPendingFriendRequests(user.getUserName()));
-							System.out.println("get PendingFriendRequests");
-
+                            collection.add(db.getPendingFriendRequests(user.getUserName()));
+                            System.out.println("get PendingFriendRequests");
 							collection.add(db.getOwnedGroups(user.getUserName()));
 							System.out.println("get owned groups");
 							collection.add(db.getJoinedGroups(user.getUserName()));
@@ -211,25 +210,23 @@ public class Server extends Thread {
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");
 							String jString = gson.toJson(collection); //convert the collection to Json format String
-							System.out.println("collection.toString():" + collection);
+
 							/* send response to client */
 							byte[] encryptedResponseArray = aes.encrypt(jString.getBytes()); //encrypting the string
-							dataNetOutputStream.writeInt(encryptedResponseArray.length);
-							System.out.println("encryptedResponseArray.length:" + encryptedResponseArray.length);
-
+							int length = encryptedResponseArray.length;
+							System.out.println("length is " + length);
+							dataNetOutputStream.writeInt(length);
+							dataNetOutputStream.flush();
 							dataNetOutputStream.write(encryptedResponseArray);
 							System.out.println("send string");
 						} else if (action.equals("logout")) {
 							System.out.println("reached logout");
 							UserAccount user = gson.fromJson(array.get(1), UserAccount.class);
-							System.out.println("made user");
 							String result = gson.toJson(String.valueOf(db.userLogOut(user.getUserName())));
 							System.out.println("made result string" + result);
 							byte[] encryptedResponse = aes.encrypt(result.getBytes());
 							System.out.println("encryption successful:" + new String(encryptedResponse));
-							dataNetOutputStream.write(encryptedResponse); // createNewUser Function will return 0 if
-							// username is already taken
-							// user registration calls the new user function in db class
+							dataNetOutputStream.write(encryptedResponse); //
 							System.out.println("send successful!");
 						}
 						//set coordinates and check whether or not user is in the open seshion range for check in
@@ -239,63 +236,32 @@ public class Server extends Thread {
 							System.out.println("User latitude: " + user.getLatitude() + "\n" + "User longitude: " + user.getLongitude());
 							db.setUserCoordinates(user.getUserName(), user.getLatitude(), user.getLongitude());
 							List<UserSession> userSessions = db.getAllOpenSessions();
+							UserSession checkedIn = null;
 							boolean withinRange = false;
-							String result = "-1";
-                            Collection collection = new ArrayList();
+							String result = "0";
 							//loop through the all open session list
-                            //only getAll open seshion when user are not checked in
-                            if(isUserCheckedIn == false) {
-                                for (int i = 0; i < userSessions.size(); i++) {
-                                    System.out.println("inside of for loop");
-                                    UserSession uSh = userSessions.get(i);
-                                    //check whether  the user latitude is in the range
-                                    if ((user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeBottomRight())
-                                            ||user.getLongitude() <= uSh.getLongitudeTopLeft() && user.getLongitude() >= uSh.getLongitudeTopRight()) {
-                                            System.out.println("latitude is in the range");
-                                            System.out.println("Longitude is in the range");
-                                            withinRange = true;
-                                            checkedIn = uSh; //get the session where the user is.
-                                            result = String.valueOf(db.checkInSessionUser(checkedIn.getID(), user.getUserName()));
-                                            System.out.println("Check in function was called ,result: "+result);
-                                            if(result.equals("0"))
-                                            {
-                                                System.out.println("the result is 0, check in fail");
-                                                collection.add("-1"); // -1 for fail.
-                                            }
-                                            else {
-                                                isUserCheckedIn = true;
-                                                collection.add("1"); //1 for check in operation
-                                                System.out.println("get result: 1");
-                                                collection.add(checkedIn);
-                                                System.out.println("get the checked in seshion " + checkedIn.getName());
-                                                break;
-                                            }
-                                        }
-                                    }
-                            }
-                            //user is currently checked in
-                            else
-                                {
-                                    if ((user.getLatitude() > checkedIn.getLatitudeTopRight() && user.getLatitude() < checkedIn.getLatitudeBottomRight())
-                                            || user.getLongitude() > checkedIn.getLongitudeTopLeft() && user.getLongitude() < checkedIn.getLongitudeTopRight()) {
-                                        System.out.println("latitude or longitude is not in the range");
-                                        withinRange = false;
-                                        result = String.valueOf(db.removeSessionUser(checkedIn.getID(), user.getUserName()));
-                                        System.out.println("Check out function was called result: " + result);
-                                        if(result.equals("0"))
-                                        {
-                                            System.out.println("the result is 0, check in fail");
-                                            collection.add("-1"); // -1 for fail.
-                                        }
-                                        else {
-                                            isUserCheckedIn = false;
-                                            collection.add("0"); //0 for check out operation
-                                            System.out.println("get result: 0");
-                                            collection.add(checkedIn);
-                                            System.out.println("get the checked out seshion " + checkedIn.getName());
-                                        }
-                                    }
-                                }
+							for (int i = 0; i < userSessions.size(); i++) {
+								System.out.println("inside of for loop");
+								UserSession uSh = userSessions.get(i);
+								//check whether or not the user latitude is in the range
+								if ((user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeBottomRight())&&
+										(user.getLongitude() >= uSh.getLongitudeTopLeft() && user.getLongitude() <= uSh.getLongitudeTopRight())) {
+										System.out.println("latitude is in the range");
+										System.out.println("Longitude is in the range");
+										withinRange = true;
+										checkedIn = uSh; //get the session where the user is.
+										result = String.valueOf(db.checkInSessionUser(checkedIn.getID(), user.getUserName()));
+										System.out.println("Check in function was called");
+										break;
+								}
+							}
+							Collection collection = new ArrayList();
+							collection.add(result);
+							System.out.println("get result: " + result);
+							if (withinRange) { //if the user is in the range add the checked in session into array
+								collection.add(checkedIn);
+								System.out.println("get the checked in seshion " + checkedIn.getName());
+							}
 							String jString = gson.toJson(collection);
 							byte[] encryptedResponse = aes.encrypt(jString.getBytes());
 							System.out.println("encryption successful:" + new String(encryptedResponse));
