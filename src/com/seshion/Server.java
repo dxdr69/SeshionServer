@@ -213,7 +213,6 @@ public class Server extends Thread {
 							System.out.println("user:" + user.getUserName() + " and his seshions:" );
 							for(int j = 0; j < db.getJoinedSessions( user.getUserName() ).size(); j++ )
 								System.out.println("JOINED SHESHIONS " + db.getJoinedSessions( user.getUserName() ).get(j).getName() );
-
 									
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");

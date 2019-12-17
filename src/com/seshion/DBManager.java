@@ -632,9 +632,9 @@ public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, 
         List<UserSession> invitedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE sid IN "
-            + "(SELECT sid FROM usersession_inviteduser WHERE theuser = ?) "
-            + "WHERE hasended = ? "
+            String SQL = "SELECT * FROM usersession "
+            + "WHERE sid IN (SELECT sid FROM usersession_inviteduser WHERE theuser = ?) "
+            + "AND hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
@@ -732,9 +732,9 @@ public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, 
         List<UserSession> joinedSessions = new ArrayList<UserSession>();
 
         try {
-            String SQL = "SELECT * FROM usersession WHERE sid IN "
-            + "(SELECT sid from usersession_showedupuser WHERE theuser = ?) "
-            + "WHERE hasended = ? "
+            String SQL = "SELECT * FROM usersession "
+            + "WHERE sid IN (SELECT sid from usersession_showedupuser WHERE theuser = ?) "
+            + "AND hasended = ? "
             + "ORDER BY startdate DESC, starttime DESC";
             Connection conn = connectToDB();
             PreparedStatement pstmt = conn.prepareStatement(SQL);
