@@ -80,6 +80,14 @@ public class UserAccount {
         this.username = username;
         this.isOnline = isOnline;
     }
+    
+    public void checkIntoSeshion(UserSession seshion){
+        this.joinedSessions.add(seshion);
+    }
+
+    public void checkOutOfSeshion(){
+        this.joinedSessions.clear();
+    }
 
     public void setUserName(String username)
     {

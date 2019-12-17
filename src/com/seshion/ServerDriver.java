@@ -99,7 +99,7 @@ public class ServerDriver {
 //		UserGroup ug4 = new UserGroup("Group project", "NickIsTheMan");
 //
 //		System.out.println("groups created");
-//		DBManager dbMan = new DBManager();
+		DBManager dbMan = new DBManager();
 //		dbMan.createNewGroup(ug1);
 //		dbMan.createNewGroup(ug2);
 //		dbMan.createNewGroup(ug3);
@@ -110,11 +110,11 @@ public class ServerDriver {
 //
 //		System.out.println("Joined Group");
 ////
-//		ArrayList<String> invitedUsers = new ArrayList<String>();
-//		invitedUsers.add("Twizzy");
-//		invitedUsers.add("David1");
-//		invitedUsers.add("NickIsTheMan");
-//		invitedUsers.add("Wushenghui");
+		ArrayList<String> invitedUsers = new ArrayList<String>();
+		invitedUsers.add("Twizzy");
+		invitedUsers.add("David1");
+		invitedUsers.add("NickIsTheMan");
+		invitedUsers.add("Wushenghui");
 ////
 //		UserSession sesh = new UserSession("PresentationSesh", "Twizzy", "We look so good right now",
 //				41.401121, -73.445337,
@@ -125,12 +125,61 @@ public class ServerDriver {
 //		System.out.println("createdusersession object");
 //		     
 //
-//		dbMan.createNewSession(sesh);
 //		System.out.println("created new sesh");
 //		UUID id = sesh.getID();
 //		System.out.println("id = " + id.toString());
 		//dbMan.checkInSessionUser(id, "Twizzy");
 		//System.out.println("checked twizzy in");
+		
+//		UserSession sesh = new UserSession("Scazi Skatepark", "Twizzy", "Shred the best bowls on the east coast!",
+//				41.063325, -73.546173,
+//				41.062997, -73.545847,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);
+//		
+//		UserSession sesh2 = new UserSession("Danbury Skatepark", "Twizzy", "I love and hate this skatepark",
+//				41.395782, -73.449879,
+//				41.395605, -73.449410,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);	
+//		
+//		UserSession sesh3 = new UserSession("Newtown skatepark", "Twizzy", "The training grounds for learning rails",
+//				41.397034, -73.301047,
+//				41.396513, -73.300047,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);	
+//		
+//		UserSession sesh4 = new UserSession("Calf Pasture", "Twizzy", "The chill zone",
+//				41.084394, -73.395972,
+//				41.084052, -73.395548,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);
+//		
+//		UserSession sesh5 = new UserSession("Scazi Tennis courts", "Twizzy", "We look so good right now",
+//				41.06388457115096, -73.55072917112095,
+//				41.063378178899136,  -73.54955543684893,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);
+//		
+//		UserSession sesh6 = new UserSession("Scazi Baseball field", "Twizzy", "We look so good right now",
+//				41.06231522755108, -73.55008114981585,
+//				41.06121990063457, -73.54819502056755,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);
+//		
+//		UserSession sesh7 = new UserSession("PresentationSesh", "Twizzy", "We look so good right now",
+//				41.401121, -73.445337,
+//				41.400845, -73.445098,
+//				LocalDate.now(), null, LocalTime.now(), null,
+//				false, invitedUsers);	
+//		
+//		dbMan.createNewSession(sesh);
+//		dbMan.createNewSession(sesh2);
+//		dbMan.createNewSession(sesh3);
+//		dbMan.createNewSession(sesh4);
+//		dbMan.createNewSession(sesh5);
+//		dbMan.createNewSession(sesh6);
+//		dbMan.createNewSession(sesh7);
 
 		ServerSocket Server = new ServerSocket(8090);
 		System.out.println("waiting for connect");

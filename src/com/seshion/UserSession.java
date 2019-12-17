@@ -100,12 +100,16 @@ public class UserSession {
         this.description = description;
         this.latitudeTopLeft = latitudeTopLeft;
         this.longitudeTopLeft = longitudeTopLeft;
-        this.latitudeTopRight = latitudeBottomRight;
-        this.longitudeTopRight = longitudeTopLeft;
-        this.latitudeBottomLeft = latitudeTopLeft;
-        this.longitudeBottomLeft = longitudeBottomRight;
+        
+        this.latitudeTopRight = latitudeTopLeft;
+        this.longitudeTopRight = longitudeBottomRight;
+        
+        this.latitudeBottomLeft = latitudeBottomRight;
+        this.longitudeBottomLeft = longitudeTopLeft;
+        
         this.latitudeBottomRight = latitudeBottomRight;
         this.longitudeBottomRight = longitudeBottomRight;
+        
         this.startDate = startDate;
         this.endDate = endDate;
         this.startTime = startTime;

@@ -210,6 +210,11 @@ public class Server extends Thread {
 							System.out.println("get InvitedSessions");
 							collection.add(db.getJoinedSessions(user.getUserName()));
 							System.out.println("get JoinedSessions");
+							System.out.println("user:" + user.getUserName() + " and his seshions:" );
+							for(int j = 0; j < db.getJoinedSessions( user.getUserName() ).size(); j++ )
+								System.out.println("JOINED SHESHIONS " + db.getJoinedSessions( user.getUserName() ).get(j).getName() );
+
+									
 							collection.add(db.getAllOpenSessions());
 							System.out.println("get JAllOpenSessions");
 							String jString = gson.toJson(collection); //convert the collection to Json format String
@@ -246,9 +251,14 @@ public class Server extends Thread {
 							for (int i = 0; i < userSessions.size(); i++) {
 								System.out.println("inside of for loop");
 								UserSession uSh = userSessions.get(i);
+								
 								//check whether or not the user latitude is in the range
-								if ((user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeBottomRight())&&
-										(user.getLongitude() >= uSh.getLongitudeTopLeft() && user.getLongitude() <= uSh.getLongitudeTopRight())) {
+								System.out.println("Seshion: " + uSh.getName());
+								System.out.println("users lat & long:" + user.getLatitude() + ", " + user.getLongitude());
+								System.out.println("Seshion latitude range:" + uSh.getLatitudeBottomRight() + " - " + uSh.getLatitudeTopRight() );
+								System.out.println("Seshion longitude range:" + uSh.getLongitudeTopLeft() + " - " + uSh.getLongitudeTopRight());
+								if ( (user.getLatitude() <= uSh.getLatitudeTopRight() && user.getLatitude() >= uSh.getLatitudeBottomRight()) 
+										&& (user.getLongitude() >= uSh.getLongitudeTopLeft() && user.getLongitude() <= uSh.getLongitudeTopRight()) ) {
 										System.out.println("latitude is in the range");
 										System.out.println("Longitude is in the range");
 										withinRange = true;
@@ -257,13 +267,46 @@ public class Server extends Thread {
 										System.out.println("Check in function was called");
 										break;
 								}
+								
+								else if( user.getJoinedSessions() !=null && user.getJoinedSessions().size() > 0 ) {/* user is checked into something and we need to check what */
+									
+									System.out.println("user is checked into a seshion, looping to see if we need to check him out");
+									for(int j = 0; j < user.getJoinedSessions().size(); j++) {
+										
+//										System.out.println("latitude is in the range");
+//										System.out.println("Longitude is in the range");
+//										withinRange = true;
+//										checkedIn = uSh; //get the session where the user is.
+//										result = String.valueOf(db.checkInSessionUser(checkedIn.getID(), user.getUserName()));
+//										System.out.println("Check in function was called");
+//										break;
+										
+										
+										/* if the joined sesh is equal to the list of db open seshions were looping over .. */
+										if(user.getJoinedSessions().get(j).getID().equals(uSh.getID())) {
+											/* user is checked into the current seshion, although their coordinates
+											 * aren't within the boundaries of the seshion so they need to be checked out */
+											result = String.valueOf(db.removeSessionUser(uSh.getID(), user.getUserName()));
+											if( result.contains("1") ) {
+												/* print message to user */
+												System.out.println("User was checked out of the seshion:" + uSh.getName());
+												
+											}else {
+												/* print message to user */
+												System.out.println("there was a problem checking the user out of a seshion");
+											}
+										}
+										
+									}
+								}
+								
 							}
 							Collection collection = new ArrayList();
 							collection.add(result);
 							System.out.println("get result: " + result);
 							if (withinRange) { //if the user is in the range add the checked in session into array
 								collection.add(checkedIn);
-								System.out.println("get the checked in seshion " + checkedIn.getName());
+								System.out.println("checked into seshion " + checkedIn.getName());
 							}
 							String jString = gson.toJson(collection);
 							byte[] encryptedResponse = aes.encrypt(jString.getBytes());
@@ -501,7 +544,7 @@ public class Server extends Thread {
 						} else if (action.equals("createseshion")) {
 							System.out.println("reach createnewsession if statement");
 							UserSession seshion = gson.fromJson(array.get(1), UserSession.class);
-							LocalTime startTime = LocalTime.parse(seshion.getStartDateText(), formatter);
+							LocalTime startTime = LocalTime.parse(seshion.getStartTimeText(), formatter);
 							LocalTime endTime;
 							if (seshion.getEndTimeText() != null)
 							{

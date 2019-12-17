@@ -1518,6 +1518,7 @@ public class DBManager implements UserAccountDao, UserGroupDao, UserSessionDao, 
             pstmt.setString(2, username);
 
             int totalAffectedRows = currentlyAffectedRows + pstmt.executeUpdate();
+            System.out.println("Total Affected Rows:" + totalAffectedRows);
             pstmt.close();
             conn.close();
 
