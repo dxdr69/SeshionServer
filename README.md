@@ -35,6 +35,7 @@ PostgreSQL 12
 * [Java 8](https://java.com/en/download/faq/java8.xml)
 * [OpenJDK 8](https://wiki.openjdk.java.net/display/jdk8u/Main)
 * [PostgreSQL 12](https://www.postgresql.org/docs/12/index.html)
+* [Android Studio](https://developer.android.com/studio?hl=it)
 
 ## Authors
 
