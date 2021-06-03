@@ -15,7 +15,7 @@ This repository contains the back-end to the Seshion app, which consists of a Ja
 
 ### Prerequisites
 
-An instance of the Seshion back-end is currently hosted on a rented VPS through DigitalOcean. The following programs are required if you want to host an instance of the application: 
+The following programs are required if you want to host an instance of the application: 
 
 ```
 Java 8 (Oracle or OpenJDK)
