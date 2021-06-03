@@ -49,7 +49,7 @@ With the database active, run the Seshion server .jar with Java to start the bac
 ## Built With
 
 * [Java 8](https://java.com/en/download/faq/java8.xml)
-* [OpenJDK 8](https://wiki.openjdk.java.net/display/jdk8u/Main)
+* [AdoptOpenJDK 8](https://adoptopenjdk.net/)
 * [Gson 2.8.6](https://search.maven.org/artifact/com.google.code.gson/gson/2.8.6/jar)
 * [PostgreSQL 12](https://www.postgresql.org/docs/12/index.html)
 * [PostgreSQL JDBC Driver](https://jdbc.postgresql.org/download.html)
